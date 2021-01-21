@@ -2,7 +2,6 @@ import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
 import scala.sys.process._
-import sbt.internal.util.MessageOnlyException
 
 object SourcegraphPlugin extends AutoPlugin {
   override def trigger = allRequirements
@@ -65,7 +64,7 @@ object SourcegraphPlugin extends AutoPlugin {
         .map(dir => s"--semanticdbDir=${dir.getAbsolutePath()}")
         .toList
       if (directoryArguments.isEmpty) {
-        throw new MessageOnlyException(
+        throw new TaskException(
           "Can't upload LSIF index to Sourcegraph because there are no SemanticDB directories. " +
             "To fix this problem, add the setting `semanticdbEnabled := true` to build.sbt and try running this command again."
         )
@@ -136,7 +135,7 @@ object SourcegraphPlugin extends AutoPlugin {
     inTasks(sourcegraphSemanticdbDirectories)
   )
 
-  private class CommandFailedException(message: String)
+  private class TaskException(message: String)
       extends RuntimeException(message)
       with FeedbackProvidedException
 
@@ -144,7 +143,7 @@ object SourcegraphPlugin extends AutoPlugin {
     val exit = Process(command).!
     if (exit != 0) {
       val commandSyntax = command.mkString(" ")
-      throw new CommandFailedException(
+      throw new TaskException(
         s"'${command.head}' failed with exit code '$exit'. To reproduce this error, run the following command:\n$commandSyntax"
       )
     }

@@ -5,7 +5,7 @@ intelligence for Scala projects on Sourcegraph.
 
 - works with Scala 2.11, 2.12 and 2.13
 - works with self-hosted Sourcegraph instances
-- requires sbt v1.3 or newer
+- requires sbt v1.4 or newer
 
 **Overview**:
 
@@ -13,10 +13,11 @@ intelligence for Scala projects on Sourcegraph.
 - [Configuration](#configuration)
 - [Disable plugin for specific project](#disable-plugin-for-specific-project)
 - [Known limitations](#known-limitations)
+- [Troubleshooting](#troubleshooting)
 
 ## Getting started
 
-First, make sure you are using sbt v1.3 or newer. This plugin does not work with
+First, make sure you are using sbt v1.4 or newer. This plugin does not work with
 older versions of sbt.
 
 Next, add the sbt plugin to your build in `project/plugins.sbt`.
@@ -28,11 +29,13 @@ Next, add the sbt plugin to your build in `project/plugins.sbt`.
 + addSbtPlugin("com.sourcegraph" % "sbt-sourcegraph" % "LATEST_VERSION")
 ```
 
-Next, enable SemanticDB in `build.sbt`.
+Next, enable SemanticDB in `build.sbt` and use the latest version of SemanticDB.
+[![](https://index.scala-lang.org/scalameta/scalameta/latest.svg?color=blue)](https://mvnrepository.com/artifact/org.scalameta/semanticdb-scalac)
 
 ```diff
   // build.sbt
 + ThisBuild / semanticdbEnabled := true
++ ThisBuild / semanticdbVersion := "LATEST_VERSION"
   lazy val myproject1 = project
     .settings(
       ...
@@ -40,11 +43,58 @@ Next, enable SemanticDB in `build.sbt`.
   lazy val myproject2 = project
 ```
 
-Optionally, enable SemanticDB on a per-project basis instead of via `ThisBuild`.
+Next, add a GitHub Actions workflow to your repository to configure your CI to
+upload indexes on pull requests and merge into your main branch.
+
+```sh
+mkdir -p .github/workflows && \
+  curl -L https://raw.githubusercontent.com/sourcegraph/sbt-sourcegraph/master/.github/workflows/sourcegraph.yml > .github/workflows/sourcegraph.yml
+```
+
+Optionally, adjust `sourcegraph.yml` to your needs. For example, you may want to
+disable the upload job for pull requests and use Java 11.
+
+```diff
+  // .github/workslows/sourcegraph.yml
+  on:
+    push:
+      branches:
+        - main
+-     pull_request:
+  jobs:
+    lsif:
+      steps:
+        - uses: olafurpg/setup-scala@v10
++         with:
++           java-version: adopt@1.11
+        - uses: actions/setup-go@v2
+          with:
+            go-version: "1.15.6"
+```
+
+Commit the new file and push it to GitHub to trigger the upload job. Once the
+upload job completes, you should be able to observe precise code intelligence on
+GitHub.
+
+### Other ways to enable SemanticDB
+
+If you don't want to enable SemanticDB in `build.sbt`, you can do it a single
+sbt session inside the upload CI job.
+
+```sh
+$ sbt \
+    'set every semanticdbEnabled := true' \
+    'set every semanticdbVersion := "LATEST_VERSION"' \
+    sourcegraphUpload
+```
+
+If you have projects that don't work with SemanticDB, you can optionally enable
+SemanticDB on a per-project basis instead of via `ThisBuild`.
 
 ```diff
   // build.sbt
 - ThisBuild / semanticdbEnabled := true
+  ThisBuild / semanticdbVersion := "LATEST_VERSION"
   lazy val myproject1 = project
     .settings(
       ...
@@ -53,28 +103,14 @@ Optionally, enable SemanticDB on a per-project basis instead of via `ThisBuild`.
   lazy val myproject2 = project
 ```
 
-Next, add a GitHub Actions workflow to your repository to configure your CI to
-upload indexes on pull requests and merge into your main branch. See the section
-on [other CI systems](#other-ci-systems) for how to configure this plugin if you
-are not using GitHub Actions.
-
-```sh
-mkdir -p .github/workflows && \
-  curl -L https://raw.githubusercontent.com/sourcegraph/sbt-sourcegraph/master/.github/workflows/sourcegraph.yml > .github/workflows/sourcegraph.yml
-```
-
-Feel free to adjust `sourcegraph.yml` to your needs, for example to disable
-uploading on pull requests. Commit the new file and push it to GitHub to trigger
-the upload job. Once the upload job completes, you should be able to observe
-precise code intelligence on GitHub.
-
 ### Other CI systems
 
-This plugin can be used with any CI system. In short, the installation steps
-from [`sourcegraph.yml`](.github/workflows/sourcegraph.yml) document all of the
-requirements to run this plugin.
+This plugin can be used with any CI system. If you don't use GitHub Actions, you
+can adjust the installation steps from
+[`sourcegraph.yml`](.github/workflows/sourcegraph.yml) to work with your own CI
+system.
 
-First, install the following binaries to `$PATH`.
+In short, first install the following binaries to `$PATH`.
 
 - https://github.com/sourcegraph/lsif-semanticdb as `lsif-semanticdb`
 - https://github.com/sourcegraph/src-cli as `src`
@@ -144,3 +180,22 @@ known issues:
 - Find references returns buggy results in some cases.
 - `crossScalaVersions` is not supported. It's only possible to upload indexes
   for a single Scala version.
+
+## Troubleshooting
+
+### `NoSuchMethodError: sbt.Def$.ifS()`
+
+The error below happens when you use this plugin with sbt v1.3 or older
+versions.
+
+```
+java.lang.NoSuchMethodError: sbt.Def$.ifS(Lsbt/internal/util/Init$Initialize;Lsbt/internal/util/Init$Initialize;Lsbt/internal/util/Init$Initialize;)Lsbt/internal/util/Init$Initialize;
+```
+
+To fix this problem, upgrade to sbt v1.4.6 or newer.
+
+```diff
+  # project/build.properties
+- sbt.version=1.3.10
++ sbt.version=1.4.6
+```
