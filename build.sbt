@@ -28,3 +28,4 @@ lazy val plugin = project
   .settings(
     sbtPlugin := true,
     moduleName := "sbt-sourcegraph"
+  )
