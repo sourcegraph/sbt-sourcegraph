@@ -26,7 +26,7 @@ Next, add the sbt plugin to your build in `project/plugins.sbt`.
 
 ```diff
   // project/plugins.sbt
-+ addSbtPlugin("com.sourcegraph" % "sbt-sourcegraph" % "LATEST_VERSION")
++ addSbtPlugin("com.sourcegraph" % "sbt-sourcegraph" % "0.1.5")
 ```
 
 Next, enable SemanticDB in `build.sbt` and use the latest version of SemanticDB.
@@ -35,7 +35,7 @@ Next, enable SemanticDB in `build.sbt` and use the latest version of SemanticDB.
 ```diff
   // build.sbt
 + ThisBuild / semanticdbEnabled := true
-+ ThisBuild / semanticdbVersion := "LATEST_VERSION"
++ ThisBuild / semanticdbVersion := "4.4.7"
   lazy val myproject1 = project
     .settings(
       ...
