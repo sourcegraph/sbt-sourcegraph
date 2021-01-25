@@ -26,5 +26,5 @@ skip in publish := true
 
 lazy val plugin = project
   .settings(
-    sbtPlugin := true
-  )
+    sbtPlugin := true,
+    moduleName := "sbt-sourcegraph"
