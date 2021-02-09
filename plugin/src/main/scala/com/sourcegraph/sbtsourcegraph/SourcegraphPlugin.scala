@@ -109,24 +109,42 @@ object SourcegraphPlugin extends AutoPlugin {
     inConfig(Test)(configSettings)
   ).flatten
 
+  private lazy val semanticdbJavacTargetroot = Def.task[Option[File]] {
+    (for {
+      option <- javacOptions.value
+      if option.startsWith("-Xplugin:semanticdb-javac")
+      pluginOption <- option.split("\\s+")
+      if pluginOption.startsWith("-targetroot:")
+    } yield new File(pluginOption.stripPrefix("-targetroot:"))).lastOption
+  }
+
   def configSettings: Seq[Def.Setting[_]] = List(
     sourcegraphUpload := sourcegraphUpload.value,
-    sourcegraphSemanticdbDirectories := {
-      if (!semanticdbEnabled.value) {
-        streams.value.log.warn(
-          s"${name.value}: " +
-            s"Skipping LSIF upload because semanticdbEnabled.value is false. " +
-            "To fix this problem, set the semanticdbEnabled setting to true."
-        )
-        Nil
-      } else {
-        val _ = fullClasspath.value
-        val dir =
-          semanticdbTargetRoot.value / "META-INF" / "semanticdb"
-        if (dir.isDirectory()) List(dir)
-        else Nil
+    sourcegraphSemanticdbDirectories := Def
+      .taskDyn[List[File]] {
+        val javacTargetroot = semanticdbJavacTargetroot.value
+        if (!semanticdbEnabled.value && javacTargetroot.isEmpty) {
+          Def.task {
+            streams.value.log.warn(
+              s"${name.value}: " +
+                s"Skipping LSIF upload because SemanticDB is not enabled " +
+                "To fix this problem for Scala project, add the setting `semanticdbEnabled := true`."
+            )
+            Nil
+          }
+        } else {
+          Def.task {
+            val _ = fullClasspath.value
+            List(
+              javacTargetroot,
+              Option(semanticdbTargetRoot.value)
+            ).flatten
+              .map(f => f / "META-INF" / "semanticdb")
+              .filter(_.isDirectory())
+          }
+        }
       }
-    }
+      .value
   )
 
   private val anyProjectFilter: ScopeFilter = ScopeFilter(
