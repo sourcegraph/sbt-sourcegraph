@@ -40,6 +40,10 @@ object SourcegraphPlugin extends AutoPlugin {
       taskKey[File](
         "The --root argument to the 'src lsif upload' command. By default, uses root directory of this build."
       )
+    val sourcegraphJavacTargetroot: TaskKey[Option[File]] =
+      taskKey[Option[File]](
+        "The directories where the semanticdb-javac compiler plugin emits SemanticDB files."
+      )
 
     val Sourcegraph: Configuration =
       config("sourcegraph")
@@ -109,26 +113,34 @@ object SourcegraphPlugin extends AutoPlugin {
     inConfig(Test)(configSettings)
   ).flatten
 
-  private lazy val semanticdbJavacTargetroot = Def.task[Option[File]] {
-    (for {
-      option <- javacOptions.value
-      if option.startsWith("-Xplugin:semanticdb-javac")
-      pluginOption <- option.split("\\s+")
-      if pluginOption.startsWith("-targetroot:")
-    } yield new File(pluginOption.stripPrefix("-targetroot:"))).lastOption
-  }
-
   def configSettings: Seq[Def.Setting[_]] = List(
     sourcegraphUpload := sourcegraphUpload.value,
+    sourcegraphJavacTargetroot := {
+      (for {
+        option <- javacOptions.value
+        if option.startsWith("-Xplugin:semanticdb-javac")
+        pluginOption <- option.split("\\s+")
+        if pluginOption.startsWith("-targetroot:")
+      } yield new File(pluginOption.stripPrefix("-targetroot:"))).lastOption
+    },
     sourcegraphSemanticdbDirectories := {
-      val javacTargetroot = semanticdbJavacTargetroot.value
-      val _ = fullClasspath.value
-      List(
-        javacTargetroot,
-        Option(semanticdbTargetRoot.value)
-      ).flatten
-        .map(f => f / "META-INF" / "semanticdb")
-        .filter(_.isDirectory())
+      if (!semanticdbEnabled.value) {
+        streams.value.log.warn(
+          s"${name.value}: " +
+            s"Skipping LSIF upload because semanticdbEnabled.value is false. " +
+            "To fix this problem, set the semanticdbEnabled setting to true."
+        )
+        Nil
+      } else {
+        val javacTargetroot = sourcegraphJavacTargetroot.value
+        val _ = fullClasspath.value
+        List(
+          javacTargetroot,
+          Option(semanticdbTargetRoot.value)
+        ).flatten
+          .map(f => f / "META-INF" / "semanticdb")
+          .filter(_.isDirectory())
+      }
     }
   )
 
