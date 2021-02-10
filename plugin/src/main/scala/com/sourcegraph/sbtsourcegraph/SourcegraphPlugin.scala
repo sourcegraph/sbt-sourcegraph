@@ -120,31 +120,16 @@ object SourcegraphPlugin extends AutoPlugin {
 
   def configSettings: Seq[Def.Setting[_]] = List(
     sourcegraphUpload := sourcegraphUpload.value,
-    sourcegraphSemanticdbDirectories := Def
-      .taskDyn[List[File]] {
-        val javacTargetroot = semanticdbJavacTargetroot.value
-        if (!semanticdbEnabled.value && javacTargetroot.isEmpty) {
-          Def.task {
-            streams.value.log.warn(
-              s"${name.value}: " +
-                s"Skipping LSIF upload because SemanticDB is not enabled " +
-                "To fix this problem for Scala project, add the setting `semanticdbEnabled := true`."
-            )
-            Nil
-          }
-        } else {
-          Def.task {
-            val _ = fullClasspath.value
-            List(
-              javacTargetroot,
-              Option(semanticdbTargetRoot.value)
-            ).flatten
-              .map(f => f / "META-INF" / "semanticdb")
-              .filter(_.isDirectory())
-          }
-        }
-      }
-      .value
+    sourcegraphSemanticdbDirectories := {
+      val javacTargetroot = semanticdbJavacTargetroot.value
+      val _ = fullClasspath.value
+      List(
+        javacTargetroot,
+        Option(semanticdbTargetRoot.value)
+      ).flatten
+        .map(f => f / "META-INF" / "semanticdb")
+        .filter(_.isDirectory())
+    }
   )
 
   private val anyProjectFilter: ScopeFilter = ScopeFilter(
