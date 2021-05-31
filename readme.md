@@ -110,10 +110,8 @@ can adjust the installation steps from
 [`sourcegraph.yml`](.github/workflows/sourcegraph.yml) to work with your own CI
 system.
 
-In short, first install the following binaries to `$PATH`.
-
-- https://github.com/sourcegraph/lsif-semanticdb as `lsif-semanticdb`
-- https://github.com/sourcegraph/src-cli as `src`
+First, install the `src` command-line tool
+(https://github.com/sourcegraph/src-cli) to `$PATH`.
 
 Next, create a GitHub access token following the instructions
 [here](https://docs.sourcegraph.com/admin/external_service/github#github-api-token-and-access).
@@ -145,9 +143,9 @@ sbt sourcegraphUpload
 **Optional settings**:
 
 - `sourcegraphEndpoint: String`: URL of the Sourcegraph instance.
-- `sourcegraphLsifSemanticdbBinary: String`: path to the
-  [`lsif-semanticdb`](https://github.com/sourcegraph/lsif-semanticdb/) binary.
-  The `lsif-semanticdb` binary needs to be installed separately.
+- `sourcegraphCoursierBinary: String`: name of the `coursier` command-line
+  interface. By default, sbt-sourcegraph launches coursier from a binary that's
+  embedded in the resources.
 - `sourcegraphSrcBinary: String`: path to the
   [`src`](https://github.com/sourcegraph/src-cli) binary. The `src` binary needs
   to be installed separately.
@@ -155,6 +153,11 @@ sbt sourcegraphUpload
   for the `src lsif upload` command. Run `src lsif upload --help` for example
   flags you may want to configure.
 - `sourcegraphRoot: String`: root directory of this sbt build.
+
+**Removed settings**:
+
+- (no longer used) `sourcegraphLsifSemanticdbBinary: String`: path to the
+  [`lsif-semanticdb`](https://github.com/sourcegraph/lsif-semanticdb/) binary.
 
 ## Disable plugin for specific project
 

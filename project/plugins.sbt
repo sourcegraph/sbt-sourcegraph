@@ -6,3 +6,6 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.25")
 Compile / unmanagedSourceDirectories +=
   (ThisBuild / baseDirectory).value.getParentFile /
     "plugin" / "src" / "main" / "scala"
+Compile / unmanagedResourceDirectories +=
+  (ThisBuild / baseDirectory).value.getParentFile /
+    "plugin" / "src" / "main" / "resources"
