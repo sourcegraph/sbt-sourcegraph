@@ -22,7 +22,7 @@ inThisBuild(
   )
 )
 
-skip in publish := true
+publish / skip := true
 
 lazy val plugin = project
   .settings(

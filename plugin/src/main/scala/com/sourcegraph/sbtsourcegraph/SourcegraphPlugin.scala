@@ -56,11 +56,11 @@ object SourcegraphPlugin extends AutoPlugin {
     sourcegraphSrcBinary := "src",
     sourcegraphEndpoint := None,
     sourcegraphExtraUploadArguments := Nil,
-    sourcegraphRoot := baseDirectory.in(ThisBuild).value,
-    target.in(Sourcegraph) := baseDirectory.in(ThisBuild).value /
+    sourcegraphRoot := (ThisBuild / baseDirectory).value,
+    Sourcegraph / target := (ThisBuild / baseDirectory).value /
       "target" / "sbt-sourcegraph",
     sourcegraphLsif := {
-      val out = target.in(Sourcegraph).value / "dump.lsif"
+      val out = (Sourcegraph / target).value / "dump.lsif"
       out.getParentFile.mkdirs()
       val directories =
         sourcegraphSemanticdbDirectories.all(anyProjectFilter).value
