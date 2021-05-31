@@ -2,6 +2,8 @@ import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
 import scala.sys.process._
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 object SourcegraphPlugin extends AutoPlugin {
   override def trigger = allRequirements
@@ -24,9 +26,9 @@ object SourcegraphPlugin extends AutoPlugin {
       taskKey[Option[String]](
         "URL of your Sourcegraph instance. By default, uploads to https://sourcegraph.com."
       )
-    val sourcegraphLsifSemanticdbBinary: SettingKey[String] =
-      settingKey[String](
-        "Binary name of the lsif-semanticdb command-line tool. By default, assumes the binary name 'lsif-semanticdb' is available on the $PATH."
+    val sourcegraphCoursierBinary: TaskKey[String] =
+      taskKey[String](
+        "Binary name of the Coursier command-line tool. By default, Coursier is launched from a small binary that's embedded in resources."
       )
     val sourcegraphSrcBinary: SettingKey[String] =
       settingKey[String](
@@ -52,20 +54,40 @@ object SourcegraphPlugin extends AutoPlugin {
   import autoImport._
 
   override lazy val globalSettings: Seq[Def.Setting[_]] = List(
-    sourcegraphLsifSemanticdbBinary := "lsif-semanticdb",
     sourcegraphSrcBinary := "src",
     sourcegraphEndpoint := None,
     sourcegraphExtraUploadArguments := Nil,
-    sourcegraphRoot := baseDirectory.in(ThisBuild).value,
-    target.in(Sourcegraph) := baseDirectory.in(ThisBuild).value /
+    sourcegraphRoot := (ThisBuild / baseDirectory).value,
+    Sourcegraph / target := (ThisBuild / baseDirectory).value /
       "target" / "sbt-sourcegraph",
+    sourcegraphCoursierBinary := {
+      val out = (Sourcegraph / target).value / "coursier"
+      if (!out.exists()) {
+        val key = "/sbt-sourcegraph/coursier"
+        val in = this.getClass().getResourceAsStream(key)
+        if (in == null) {
+          throw new NoSuchElementException(
+            s"the resource '$key' does not exist. " +
+              "To fix this problem, define the `sourcegraphCoursierBinary` setting."
+          )
+        }
+        try {
+          out.getParentFile().mkdirs()
+          Files.copy(in, out.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        } finally {
+          in.close()
+        }
+        out.setExecutable(true)
+      }
+      out.getAbsolutePath()
+    },
     sourcegraphLsif := {
-      val out = target.in(Sourcegraph).value / "dump.lsif"
+      val out = (Sourcegraph / target).value / "dump.lsif"
       out.getParentFile.mkdirs()
       val directories =
         sourcegraphSemanticdbDirectories.all(anyProjectFilter).value
       val directoryArguments = directories.iterator.flatten
-        .map(dir => s"--semanticdbDir=${dir.getAbsolutePath()}")
+        .map(_.getAbsolutePath())
         .toList
       if (directoryArguments.isEmpty) {
         throw new TaskException(
@@ -74,8 +96,13 @@ object SourcegraphPlugin extends AutoPlugin {
         )
       }
       runProcess(
-        sourcegraphLsifSemanticdbBinary.value ::
-          s"--out=$out" ::
+        sourcegraphCoursierBinary.value ::
+          "launch" ::
+          "--contrib" ::
+          "lsif-java" ::
+          "--" ::
+          "index-semanticdb" ::
+          s"--output=$out" ::
           directoryArguments
       )
       out

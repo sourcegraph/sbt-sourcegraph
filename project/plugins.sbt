@@ -3,6 +3,9 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.3.4")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.25")
 
-unmanagedSourceDirectories.in(Compile) +=
-  baseDirectory.in(ThisBuild).value.getParentFile /
+Compile / unmanagedSourceDirectories +=
+  (ThisBuild / baseDirectory).value.getParentFile /
     "plugin" / "src" / "main" / "scala"
+Compile / unmanagedResourceDirectories +=
+  (ThisBuild / baseDirectory).value.getParentFile /
+    "plugin" / "src" / "main" / "resources"
