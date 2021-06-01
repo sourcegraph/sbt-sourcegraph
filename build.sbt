@@ -1,6 +1,6 @@
 inThisBuild(
   List(
-    scalaVersion := "2.12.12",
+    scalaVersion := "2.12.14",
     scalacOptions ++= List(
       "-Xlint:unused"
     ),
