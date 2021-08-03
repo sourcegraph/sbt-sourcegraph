@@ -2,8 +2,11 @@ import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
 import scala.sys.process._
+import scala.jdk.CollectionConverters._
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
 
 object SourcegraphPlugin extends AutoPlugin {
   override def trigger = allRequirements
@@ -160,7 +163,16 @@ object SourcegraphPlugin extends AutoPlugin {
         Nil
       } else {
         val javacTargetroot = sourcegraphJavacTargetroot.value
-        val _ = fullClasspath.value
+        val jars = fullClasspath.value.map(_.data)
+        val javacopts =
+          semanticdbTargetRoot.value / "META-INF" / "semanticdb" / "javacopts.txt"
+        Files.createDirectories(javacopts.toPath().getParent())
+        Files.write(
+          javacopts.toPath,
+          List("-classpath", jars.mkString(File.pathSeparator)).asJava,
+          StandardOpenOption.CREATE,
+          StandardOpenOption.TRUNCATE_EXISTING
+        )
         List(
           javacTargetroot,
           Option(semanticdbTargetRoot.value)
