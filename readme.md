@@ -3,7 +3,8 @@
 This is a zero-dependency sbt plugin to help you enable precise code
 intelligence for Scala projects on Sourcegraph.
 
-- works with Scala 2.11, 2.12 and 2.13
+- works with Scala 2.11, 2.12, 2.13, and Scala 3
+- works with hybrid Scala/Java codebases
 - works with self-hosted Sourcegraph instances
 - requires sbt v1.4 or newer
 
@@ -26,7 +27,7 @@ Next, add the sbt plugin to your build in `project/plugins.sbt`.
 
 ```diff
   // project/plugins.sbt
-+ addSbtPlugin("com.sourcegraph" % "sbt-sourcegraph" % "0.1.5")
++ addSbtPlugin("com.sourcegraph" % "sbt-sourcegraph" % "0.2.1")
 ```
 
 Next, enable SemanticDB in `build.sbt` and use the latest version of SemanticDB.
