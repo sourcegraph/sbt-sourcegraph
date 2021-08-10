@@ -9,6 +9,7 @@ val V = new {
 
 scalaVersion := V.scala212
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0-alpha.1"
+ThisBuild / versionScheme := Some("early-semver")
 organization := "com.sourcegraph"
 semanticdbEnabled := !scalaVersion.value.startsWith("2.10")
 semanticdbVersion := "4.4.26"
