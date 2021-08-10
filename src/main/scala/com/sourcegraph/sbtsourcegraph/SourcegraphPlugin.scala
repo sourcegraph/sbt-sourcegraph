@@ -22,6 +22,14 @@ object SourcegraphPlugin extends AutoPlugin {
       taskKey[File](
         "Task to generate a single LSIF index for all SemanticDB files in this workspace."
       )
+    val sourcegraphTargetRoots: TaskKey[List[String]] =
+      taskKey[List[String]](
+        "Task to generate a single LSIF index for all SemanticDB files in this workspace."
+      )
+    val sourcegraphTargetRootsFile: TaskKey[File] =
+      taskKey[File](
+        "Task to generate a single LSIF index for all SemanticDB files in this workspace."
+      )
     val sourcegraphLsifJavaVersion: SettingKey[String] =
       settingKey[String]("The version of the `lsif-java` command-line tool.")
     val sourcegraphSemanticdbDirectories: TaskKey[List[File]] =
@@ -75,20 +83,36 @@ object SourcegraphPlugin extends AutoPlugin {
       scala.util.Properties
         .propOrElse("lsif-java-version", Versions.semanticdbJavacVersion())
     },
-    sourcegraphLsif := {
-      val out = target.in(Sourcegraph).value / "dump.lsif"
-      out.getParentFile.mkdirs()
+    sourcegraphTargetRoots := {
       val directories =
         sourcegraphSemanticdbDirectories.all(anyProjectFilter).value
       val directoryArguments = directories.iterator.flatten
         .map(_.getAbsolutePath())
         .toList
+        .distinct
       if (directoryArguments.isEmpty) {
         throw new TaskException(
           "Can't upload LSIF index to Sourcegraph because there are no SemanticDB directories. " +
             "To fix this problem, run the `sourcegraphEnable` command before `sourcegraphLsif` like this: sbt sourcegraphEnable sourcegraphLsif"
         )
       }
+      directoryArguments
+    },
+    sourcegraphTargetRootsFile := {
+      val roots = sourcegraphTargetRoots.value
+      val out = target.in(Sourcegraph).value / "targetroots.txt"
+      Files.createDirectories(out.toPath().getParent())
+      Files.write(
+        out.toPath(),
+        roots.asJava,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING
+      )
+      out
+    },
+    sourcegraphLsif := {
+      val out = target.in(Sourcegraph).value / "dump.lsif"
+      out.getParentFile.mkdirs()
       runProcess(
         sourcegraphCoursierBinary.value ::
           "launch" ::
@@ -97,7 +121,7 @@ object SourcegraphPlugin extends AutoPlugin {
           "--" ::
           "index-semanticdb" ::
           s"--output=$out" ::
-          directoryArguments
+          sourcegraphTargetRoots.value
       )
       out
     },
@@ -169,7 +193,7 @@ object SourcegraphPlugin extends AutoPlugin {
       val javacTargetroot = sourcegraphJavacTargetroot.value
       val jars = fullClasspath.result.value match {
         case Value(value) => value.map(_.data)
-        case _            => Nil
+        case other        => Nil
       }
       val results = List(
         javacTargetroot,
@@ -178,12 +202,14 @@ object SourcegraphPlugin extends AutoPlugin {
         .map(f => f / "META-INF" / "semanticdb")
         .filter(_.isDirectory())
       results.headOption.foreach { dir =>
-        Files.write(
-          dir.toPath.resolve("javacopts.txt"),
-          List("-classpath", jars.mkString(File.pathSeparator)).asJava,
-          StandardOpenOption.CREATE,
-          StandardOpenOption.TRUNCATE_EXISTING
-        )
+        if (jars.nonEmpty) {
+          Files.write(
+            dir.toPath.resolve("javacopts.txt"),
+            List("-classpath", jars.mkString(File.pathSeparator)).asJava,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.TRUNCATE_EXISTING
+          )
+        }
       }
       results
     }

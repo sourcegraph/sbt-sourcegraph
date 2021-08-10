@@ -75,5 +75,11 @@ buildInfoKeys := List[BuildInfoKey](
 )
 buildInfoPackage := "com.sourcegraph.sbtsourcegraph"
 enablePlugins(BuildInfoPlugin)
+enablePlugins(ScriptedPlugin)
+scriptedBufferLog := false
+scriptedLaunchOpts ++= Seq(
+  "-Xmx2048M",
+  s"-Dplugin.version=${version.value}"
+)
 
 def isCI = "true" == System.getenv("CI")
