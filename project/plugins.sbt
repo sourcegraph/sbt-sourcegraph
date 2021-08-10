@@ -4,6 +4,8 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.3")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.29")
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.8-94-1cfdf0bd")
 
+libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
+
 Compile / unmanagedSourceDirectories +=
   (ThisBuild / baseDirectory).value.getParentFile /
     "src" / "main" / "scala"

@@ -43,7 +43,7 @@ object SourcegraphEnable {
             javacOptions.in(p) += s"-Xplugin:semanticdb " +
               s"-build-tool:sbt " +
               s"-sourceroot:${baseDirectory.in(ThisBuild).value} " +
-              s"-targetroot:${classDirectory.in(Compile).value.toPath().resolveSibling("semanticdb-classes")}"
+              s"-targetroot:${classDirectory.in(p, Compile).value.toPath().resolveSibling("semanticdb-classes")}"
           ),
           overriddenScalaVersion.map(v => scalaVersion.in(p) := v),
           Option(SemanticdbPlugin.semanticdbEnabled.in(p) := true),

@@ -1,0 +1,1 @@
+addSbtPlugin("com.sourcegraph" % "sbt-sourcegraph" % sys.props("plugin.version"))
