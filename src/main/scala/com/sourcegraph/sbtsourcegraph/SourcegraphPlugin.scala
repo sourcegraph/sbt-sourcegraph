@@ -167,23 +167,25 @@ object SourcegraphPlugin extends AutoPlugin {
     },
     sourcegraphSemanticdbDirectories := {
       val javacTargetroot = sourcegraphJavacTargetroot.value
-      val jars = fullClasspath.value.map(_.data)
-      val javacopts =
-        sourcegraphScalacTargetroot.value / "META-INF" / "semanticdb" / "javacopts.txt"
-      if (Files.isDirectory(javacopts.toPath().getParent())) {
-        Files.write(
-          javacopts.toPath,
-          List("-classpath", jars.mkString(File.pathSeparator)).asJava,
-          StandardOpenOption.CREATE,
-          StandardOpenOption.TRUNCATE_EXISTING
-        )
+      val jars = fullClasspath.result.value match {
+        case Value(value) => value.map(_.data)
+        case _            => Nil
       }
-      List(
+      val results = List(
         javacTargetroot,
         Option(sourcegraphScalacTargetroot.value)
       ).flatten
         .map(f => f / "META-INF" / "semanticdb")
         .filter(_.isDirectory())
+      results.headOption.foreach { dir =>
+        Files.write(
+          dir.toPath.resolve("javacopts.txt"),
+          List("-classpath", jars.mkString(File.pathSeparator)).asJava,
+          StandardOpenOption.CREATE,
+          StandardOpenOption.TRUNCATE_EXISTING
+        )
+      }
+      results
     }
   )
 

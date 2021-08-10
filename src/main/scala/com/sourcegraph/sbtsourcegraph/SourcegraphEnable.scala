@@ -28,17 +28,16 @@ object SourcegraphEnable {
     val scalacOptionsSettings = Seq(Compile, Test).flatMap(
       inConfig(_)(SourcegraphPlugin.relaxScalacOptionsConfigSettings)
     )
+    val semanticdbJavacVersion = Versions.semanticdbJavacVersion()
     val settings = for {
       (p, semanticdbVersion, overriddenScalaVersion) <- collectProjects(
         extracted
       )
-      enableSemanticdbPlugin <-
+      enableSemanticdbPlugin =
         List(
           Option(
-            allDependencies.in(
-              p
-            ) += "com.sourcegraph" % "semanticdb-javac" % Versions
-              .semanticdbJavacVersion()
+            allDependencies.in(p) +=
+              "com.sourcegraph" % "semanticdb-javac" % semanticdbJavacVersion
           ),
           Option(
             javacOptions.in(p) += s"-Xplugin:semanticdb " +
@@ -47,14 +46,16 @@ object SourcegraphEnable {
               s"-targetroot:${classDirectory.in(Compile).value.toPath().resolveSibling("semanticdb-classes")}"
           ),
           overriddenScalaVersion.map(v => scalaVersion.in(p) := v),
-          Option(SemanticdbPlugin.semanticdbEnabled := true),
-          Option(SemanticdbPlugin.semanticdbVersion := semanticdbVersion)
+          Option(SemanticdbPlugin.semanticdbEnabled.in(p) := true),
+          Option(SemanticdbPlugin.semanticdbVersion.in(p) := semanticdbVersion)
         ).flatten
       settings <-
         inScope(ThisScope.in(p))(
           scalacOptionsSettings
         ) ++ enableSemanticdbPlugin
     } yield settings
+    println("SETTINGS:")
+    settings.foreach(println)
     Compat.append(extracted, settings, s)
   }
 
@@ -101,6 +102,8 @@ object SourcegraphEnable {
           scalacOptionsSettings
         ) ++ addSemanticdbCompilerPlugin
     } yield settings
+    println("SETTINGS:")
+    settings.foreach(println)
     Compat.append(extracted, settings, s)
   }
 
