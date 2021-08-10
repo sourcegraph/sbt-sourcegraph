@@ -54,8 +54,6 @@ object SourcegraphEnable {
           scalacOptionsSettings
         ) ++ enableSemanticdbPlugin
     } yield settings
-    println("SETTINGS:")
-    settings.foreach(println)
     Compat.append(extracted, settings, s)
   }
 
@@ -102,8 +100,6 @@ object SourcegraphEnable {
           scalacOptionsSettings
         ) ++ addSemanticdbCompilerPlugin
     } yield settings
-    println("SETTINGS:")
-    settings.foreach(println)
     Compat.append(extracted, settings, s)
   }
 
