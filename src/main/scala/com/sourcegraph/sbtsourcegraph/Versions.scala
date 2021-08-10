@@ -7,7 +7,7 @@ import scala.collection.JavaConverters._
 import scala.sys.process._
 
 object Versions {
-  def scalametaVersion = "4.4.25"
+  def scalametaVersion = "4.4.26"
   private def semanticdbJavacKey = "semanticdb-javac"
 
   def semanticdbJavacVersion(): String =
