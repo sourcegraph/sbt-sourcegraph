@@ -22,6 +22,8 @@ object SourcegraphPlugin extends AutoPlugin {
       taskKey[File](
         "Task to generate a single LSIF index for all SemanticDB files in this workspace."
       )
+    val sourcegraphLsifJavaVersion: SettingKey[String] =
+      settingKey[String]("The version of the `lsif-java` command-line tool.")
     val sourcegraphSemanticdbDirectories: TaskKey[List[File]] =
       taskKey[List[File]](
         "Task to compile all projects in this build and aggregate all SemanticDB directories."
@@ -69,6 +71,10 @@ object SourcegraphPlugin extends AutoPlugin {
   import autoImport._
 
   override lazy val buildSettings: Seq[Def.Setting[_]] = List(
+    sourcegraphLsifJavaVersion := {
+      scala.util.Properties
+        .propOrElse("lsif-java-version", Versions.semanticdbJavacVersion())
+    },
     sourcegraphLsif := {
       val out = target.in(Sourcegraph).value / "dump.lsif"
       out.getParentFile.mkdirs()
@@ -87,7 +93,7 @@ object SourcegraphPlugin extends AutoPlugin {
         sourcegraphCoursierBinary.value ::
           "launch" ::
           "--contrib" ::
-          "lsif-java" ::
+          s"lsif-java:${sourcegraphLsifJavaVersion.value}" ::
           "--" ::
           "index-semanticdb" ::
           s"--output=$out" ::
