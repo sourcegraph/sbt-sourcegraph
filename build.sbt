@@ -74,7 +74,7 @@ buildInfoKeys := List[BuildInfoKey](
   version
 )
 libraryDependencies ++= List(
-  "org.apache.logging.log4j" % "log4j-core" % "2.14.0"
+  "org.apache.logging.log4j" % "log4j-core" % "2.14.0" % Runtime
 )
 buildInfoPackage := "com.sourcegraph.sbtsourcegraph"
 enablePlugins(BuildInfoPlugin)

@@ -14,25 +14,7 @@ object Log4shellPlugin extends AutoPlugin {
     )
   }
   import autoImport._
-  override def projectSettings: Seq[Setting[_]] = List(
-    TaskKey[Unit]("detectVulnerableLog4jWithUpdateReport") := {
-      val updateReport = update.value
-      val projectName = thisProject.value.id
-      val l = streams.value.log
-      for {
-        configuration <- updateReport.configurations
-        module <- configuration.modules
-        (artifact, file) <- module.artifacts
-      } {
-        analyzeDependencyClasspathEntry(
-          projectName,
-          configuration.configuration.name,
-          file,
-          l
-        )
-      }
-    }
-  ) ++
+  override def projectSettings: Seq[Setting[_]] =
     List(Compile, Test).flatMap(c =>
       inConfig(c)(
         List(
@@ -40,12 +22,7 @@ object Log4shellPlugin extends AutoPlugin {
             val projectName = thisProject.value.id
             val l = streams.value.log
             dependencyClasspath.value.foreach { entry =>
-              analyzeDependencyClasspathEntry(
-                projectName,
-                c.name,
-                entry.data,
-                l
-              )
+              analyzeDependencyClasspathEntry(projectName, c, entry.data, l)
             }
           }
         )
@@ -54,7 +31,7 @@ object Log4shellPlugin extends AutoPlugin {
 
   def analyzeDependencyClasspathEntry(
       projectName: String,
-      configName: String,
+      config: Configuration,
       file: File,
       logger: Logger
   ): Unit = {
@@ -68,7 +45,7 @@ object Log4shellPlugin extends AutoPlugin {
             element.getName() == "org/apache/logging/log4j/core/lookup/JndiLookup.class"
           ) {
             logger.error(
-              s"CVE-2021-44228: the config '${configName}' in the project '$projectName' depends on a vulnerable jar file ${file.absolutePath}"
+              s"CVE-2021-44228: the config '${config.name}' in the project '$projectName' depends on a vulnerable jar file ${file.absolutePath}"
             )
           }
         }

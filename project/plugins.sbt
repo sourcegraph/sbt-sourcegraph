@@ -5,6 +5,9 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.29")
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.9-22-2d02726c")
 
 libraryDependencies += "org.scala-sbt" %% "scripted-plugin" % sbtVersion.value
+libraryDependencies ++= List(
+  "org.apache.logging.log4j" % "log4j-core" % "2.14.0"
+)
 
 Compile / unmanagedSourceDirectories +=
   (ThisBuild / baseDirectory).value.getParentFile /
