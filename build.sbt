@@ -86,3 +86,18 @@ scriptedLaunchOpts ++= Seq(
 )
 
 def isCI = "true" == System.getenv("CI")
+
+
+val goodLog4jVersion = "2.16.0"
+val badLog4jVersion = "2.14.0"
+lazy val example = project
+  .settings(
+    name := "log4j-test",
+
+libraryDependencies ++= Seq(
+  "org.apache.logging.log4j" % "log4j-api" % goodLog4jVersion,
+  "org.apache.logging.log4j" % "log4j-core" % badLog4jVersion % Runtime,
+  "org.apache.logging.log4j" % "log4j-core" % goodLog4jVersion % Test
+)
+  )
+
