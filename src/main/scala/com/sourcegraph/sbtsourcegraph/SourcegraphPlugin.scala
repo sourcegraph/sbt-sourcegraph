@@ -80,7 +80,8 @@ object SourcegraphPlugin extends AutoPlugin {
 
   override lazy val buildSettings: Seq[Def.Setting[_]] = List(
     sourcegraphScipJavaVersion := {
-        scala.util.Properties.propOrElse("scip-java-version", Versions.semanticdbJavacVersion())
+      scala.util.Properties
+        .propOrElse("scip-java-version", Versions.semanticdbJavacVersion())
     },
     sourcegraphTargetRoots := {
       val directories =
@@ -110,7 +111,7 @@ object SourcegraphPlugin extends AutoPlugin {
       out
     },
     sourcegraphScip := {
-      val out = (Sourcegraph / target).value / "dump.lsif"
+      val out = (Sourcegraph / target).value / "index.scip"
       out.getParentFile.mkdirs()
       runProcess(
         sourcegraphCoursierBinary.value ::
