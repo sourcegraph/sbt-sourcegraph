@@ -136,9 +136,9 @@ sbt sourcegraphUpload
 
 **Tasks**:
 
-- `sourcegraphLsif`: compiles all projects in the build and generates an LSIF
+- `sourcegraphScip`: compiles all projects in the build and generates an LSIF
   index from the compiled SemanticDB files.
-- `sourcegraphUpload`: uploads the LSIF index from `sourcegraphLsif` to
+- `sourcegraphUpload`: uploads the LSIF index from `sourcegraphScip` to
   Sourcegraph.
 
 **Optional settings**:
@@ -155,10 +155,13 @@ sbt sourcegraphUpload
   flags you may want to configure.
 - `sourcegraphRoot: String`: root directory of this sbt build.
 
-**Removed settings**:
+**Removed settings and tasks**:
 
 - (no longer used) `sourcegraphLsifSemanticdbBinary: String`: path to the
   [`lsif-semanticdb`](https://github.com/sourcegraph/lsif-semanticdb/) binary.
+- `sourcegraphLsif` which has now been replaced with `sourcegraphScip`
+- `sourcegraphLsifVersion` which has now been replaced with
+    `sourcegraphScipVersion`
 
 ## Disable plugin for specific project
 
