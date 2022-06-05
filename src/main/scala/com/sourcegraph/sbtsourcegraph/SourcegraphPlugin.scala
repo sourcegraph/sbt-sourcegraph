@@ -1,14 +1,15 @@
 package com.sourcegraph.sbtsourcegraph
 
-import sbt._
 import sbt.Keys._
+import sbt._
+import sbt.internal.sbtsourcegraph.Compat
 import sbt.plugins.JvmPlugin
-import scala.collection.JavaConverters._
+
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
-import sbt.internal.sbtsourcegraph.Compat
+import scala.collection.JavaConverters._
 
 object SourcegraphPlugin extends AutoPlugin {
   override def trigger = allRequirements
@@ -18,7 +19,7 @@ object SourcegraphPlugin extends AutoPlugin {
       taskKey[Unit](
         "Task to upload the LSIF index to Sourcegraph to enable precise code intelligence."
       )
-    val sourcegraphLsif: TaskKey[File] =
+    val sourcegraphScip: TaskKey[File] =
       taskKey[File](
         "Task to generate a single LSIF index for all SemanticDB files in this workspace."
       )
@@ -30,13 +31,12 @@ object SourcegraphPlugin extends AutoPlugin {
       taskKey[File](
         "Task to generate a single LSIF index for all SemanticDB files in this workspace."
       )
-    val sourcegraphLsifJavaVersion: SettingKey[String] =
-      settingKey[String]("The version of the `lsif-java` command-line tool.")
+    val sourcegraphScipJavaVersion: SettingKey[String] =
+      settingKey[String]("The version of the `scip-java` command-line tool.")
     val sourcegraphSemanticdbDirectories: TaskKey[List[File]] =
       taskKey[List[File]](
         "Task to compile all projects in this build and aggregate all SemanticDB directories."
       )
-
     val sourcegraphEndpoint: TaskKey[Option[String]] =
       taskKey[Option[String]](
         "URL of your Sourcegraph instance. By default, uploads to https://sourcegraph.com."
@@ -79,9 +79,9 @@ object SourcegraphPlugin extends AutoPlugin {
   import autoImport._
 
   override lazy val buildSettings: Seq[Def.Setting[_]] = List(
-    sourcegraphLsifJavaVersion := {
+    sourcegraphScipJavaVersion := {
       scala.util.Properties
-        .propOrElse("lsif-java-version", Versions.semanticdbJavacVersion())
+        .propOrElse("scip-java-version", Versions.semanticdbJavacVersion())
     },
     sourcegraphTargetRoots := {
       val directories =
@@ -110,14 +110,16 @@ object SourcegraphPlugin extends AutoPlugin {
       )
       out
     },
-    sourcegraphLsif := {
+    sourcegraphScip := {
       val out = target.in(Sourcegraph).value / "dump.lsif"
       out.getParentFile.mkdirs()
       runProcess(
         sourcegraphCoursierBinary.value ::
           "launch" ::
           "--contrib" ::
-          s"lsif-java:${sourcegraphLsifJavaVersion.value}" ::
+          s"scip-java:${sourcegraphScipJavaVersion.value}" ::
+          "-M" ::
+          "com.sourcegraph.scip_java.ScipJava" ::
           "--" ::
           "index-semanticdb" ::
           s"--output=$out" ::
@@ -134,7 +136,7 @@ object SourcegraphPlugin extends AutoPlugin {
             "in https://github.com/sourcegraph/sbt-sourcegraph/blob/main/README.md"
         )
       }
-      val in = sourcegraphLsif.value
+      val in = sourcegraphScip.value
       val uploadCommand = List[Option[String]](
         Some(sourcegraphSrcBinary.value),
         sourcegraphEndpoint.value.map(url => s"--endpoint=$url"),
