@@ -99,7 +99,7 @@ object SourcegraphPlugin extends AutoPlugin {
     },
     sourcegraphTargetRootsFile := {
       val roots = sourcegraphTargetRoots.value
-      val out = target.in(Sourcegraph).value / "targetroots.txt"
+      val out = (Sourcegraph / target).value / "targetroots.txt"
       Files.createDirectories(out.toPath().getParent())
       Files.write(
         out.toPath(),
@@ -110,7 +110,7 @@ object SourcegraphPlugin extends AutoPlugin {
       out
     },
     sourcegraphScip := {
-      val out = target.in(Sourcegraph).value / "dump.lsif"
+      val out = (Sourcegraph / target).value / "dump.lsif"
       out.getParentFile.mkdirs()
       runProcess(
         sourcegraphCoursierBinary.value ::
@@ -158,11 +158,11 @@ object SourcegraphPlugin extends AutoPlugin {
     sourcegraphSrcBinary := "src",
     sourcegraphEndpoint := None,
     sourcegraphExtraUploadArguments := Nil,
-    sourcegraphRoot := baseDirectory.in(ThisBuild).value,
-    target.in(Sourcegraph) := baseDirectory.in(ThisBuild).value /
+    sourcegraphRoot := (ThisBuild / baseDirectory).value,
+    (Sourcegraph / target) := (ThisBuild / baseDirectory).value /
       "target" / "sbt-sourcegraph",
     sourcegraphCoursierBinary := createCoursierBinary(
-      target.in(Sourcegraph).value
+      (Sourcegraph / target).value
     )
   )
 
@@ -259,8 +259,8 @@ object SourcegraphPlugin extends AutoPlugin {
 
   val relaxScalacOptionsConfigSettings: Seq[Def.Setting[_]] =
     Seq(
-      scalacOptions.in(compile) := {
-        val options = scalacOptions.in(compile).value
+      (compile / scalacOptions) := {
+        val options = (compile / scalacOptions).value
         options.filterNot { option =>
           scalacOptionsToRelax.exists(_.matcher(option).matches)
         }
