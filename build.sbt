@@ -79,6 +79,7 @@ enablePlugins(ScriptedPlugin)
 scriptedBufferLog := false
 scriptedLaunchOpts ++= Seq(
   "-Xmx2048M",
+  s"-Dscip-java.version=${Versions.semanticdbJavacVersion()}",
   s"-Dplugin.version=${version.value}"
 )
 
