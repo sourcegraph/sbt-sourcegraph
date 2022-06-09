@@ -18,9 +18,9 @@ lazy val a = project
 lazy val b = project
   .dependsOn(a)
 
-commands += Command.command("checkLsif") { s =>
+commands += Command.command("checkSourcegraph") { s =>
   val dumpPath =
-    (ThisBuild / baseDirectory).value / "target" / "sbt-sourcegraph" / "dump.lsif"
+    (ThisBuild / baseDirectory).value / "target" / "sbt-sourcegraph" / "index.scip"
   val dump = Files.readAllLines(dumpPath.toPath).asScala
   val packageInformation =
     """.*"name":"(.*)","manager":"jvm-dependencies"}""".r

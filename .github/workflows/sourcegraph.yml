@@ -5,18 +5,17 @@ on:
       - main
   pull_request:
 jobs:
-  lsif:
+  sourcegraph:
     runs-on: ubuntu-latest
-    name: "Upload LSIF"
+    name: "Upload Sourcegraph Code Intel"
     steps:
       - uses: actions/checkout@v2
       - uses: coursier/setup-action@v1.1.2
         with:
           jvm: adopt:8
       - run: cs launch --contrib scip-java -- index
-      - name: Upload LSIF data
-        uses: sourcegraph/lsif-upload-action@master
-        with:
-          endpoint: https://sourcegraph.com
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dump.lsif
+      - run: yarn install @sourcegraph/src
+      - run: |
+          src code-intel upload "-commit=${GITHUB_SHA}" "-github-token=${GITHUB_TOKEN}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
