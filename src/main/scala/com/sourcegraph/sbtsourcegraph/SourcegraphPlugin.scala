@@ -1,14 +1,15 @@
 package com.sourcegraph.sbtsourcegraph
 
-import sbt._
 import sbt.Keys._
+import sbt._
+import sbt.internal.sbtsourcegraph.Compat
 import sbt.plugins.JvmPlugin
-import scala.collection.JavaConverters._
+
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
-import sbt.internal.sbtsourcegraph.Compat
+import scala.collection.JavaConverters._
 
 object SourcegraphPlugin extends AutoPlugin {
   override def trigger = allRequirements
@@ -16,27 +17,26 @@ object SourcegraphPlugin extends AutoPlugin {
   object autoImport {
     val sourcegraphUpload: TaskKey[Unit] =
       taskKey[Unit](
-        "Task to upload the LSIF index to Sourcegraph to enable precise code intelligence."
+        "Task to upload the SCIP index to Sourcegraph to enable precise code intelligence."
       )
-    val sourcegraphLsif: TaskKey[File] =
+    val sourcegraphScip: TaskKey[File] =
       taskKey[File](
-        "Task to generate a single LSIF index for all SemanticDB files in this workspace."
+        "Task to generate a single  SCIP index for all SemanticDB files in this workspace."
       )
     val sourcegraphTargetRoots: TaskKey[List[String]] =
       taskKey[List[String]](
-        "Task to generate a single LSIF index for all SemanticDB files in this workspace."
+        "Task to generate a single  SCIP index for all SemanticDB files in this workspace."
       )
     val sourcegraphTargetRootsFile: TaskKey[File] =
       taskKey[File](
-        "Task to generate a single LSIF index for all SemanticDB files in this workspace."
+        "Task to generate a single  SCIP index for all SemanticDB files in this workspace."
       )
-    val sourcegraphLsifJavaVersion: SettingKey[String] =
-      settingKey[String]("The version of the `lsif-java` command-line tool.")
+    val sourcegraphScipJavaVersion: SettingKey[String] =
+      settingKey[String]("The version of the `scip-java` command-line tool.")
     val sourcegraphSemanticdbDirectories: TaskKey[List[File]] =
       taskKey[List[File]](
         "Task to compile all projects in this build and aggregate all SemanticDB directories."
       )
-
     val sourcegraphEndpoint: TaskKey[Option[String]] =
       taskKey[Option[String]](
         "URL of your Sourcegraph instance. By default, uploads to https://sourcegraph.com."
@@ -51,11 +51,11 @@ object SourcegraphPlugin extends AutoPlugin {
       )
     val sourcegraphExtraUploadArguments: TaskKey[List[String]] =
       taskKey[List[String]](
-        "Additional arguments to pass to `src lsif upload`. Use this setting to specify flags like --commit, --repo, --github-token, --root or --upload-route."
+        "Additional arguments to pass to `src code-intel upload`. Use this setting to specify flags like --commit, --repo, --github-token, --root or --upload-route."
       )
     val sourcegraphRoot: TaskKey[File] =
       taskKey[File](
-        "The --root argument to the 'src lsif upload' command. By default, uses root directory of this build."
+        "The --root argument to the 'src code-intel upload' command. By default, uses root directory of this build."
       )
     val sourcegraphScalacTargetroot: TaskKey[File] =
       taskKey[File](
@@ -79,9 +79,9 @@ object SourcegraphPlugin extends AutoPlugin {
   import autoImport._
 
   override lazy val buildSettings: Seq[Def.Setting[_]] = List(
-    sourcegraphLsifJavaVersion := {
+    sourcegraphScipJavaVersion := {
       scala.util.Properties
-        .propOrElse("lsif-java-version", Versions.semanticdbJavacVersion())
+        .propOrElse("scip-java-version", Versions.semanticdbJavacVersion())
     },
     sourcegraphTargetRoots := {
       val directories =
@@ -92,15 +92,15 @@ object SourcegraphPlugin extends AutoPlugin {
         .distinct
       if (directoryArguments.isEmpty) {
         throw new TaskException(
-          "Can't upload LSIF index to Sourcegraph because there are no SemanticDB directories. " +
-            "To fix this problem, run the `sourcegraphEnable` command before `sourcegraphLsif` like this: sbt sourcegraphEnable sourcegraphLsif"
+          "Can't upload SCIP index to Sourcegraph because there are no SemanticDB directories. " +
+            "To fix this problem, run the `sourcegraphEnable` command before `sourcegraphScip` like this: sbt sourcegraphEnable sourcegraphScip"
         )
       }
       directoryArguments
     },
     sourcegraphTargetRootsFile := {
       val roots = sourcegraphTargetRoots.value
-      val out = target.in(Sourcegraph).value / "targetroots.txt"
+      val out = (Sourcegraph / target).value / "targetroots.txt"
       Files.createDirectories(out.toPath().getParent())
       Files.write(
         out.toPath(),
@@ -110,14 +110,15 @@ object SourcegraphPlugin extends AutoPlugin {
       )
       out
     },
-    sourcegraphLsif := {
-      val out = target.in(Sourcegraph).value / "dump.lsif"
+    sourcegraphScip := {
+      val out = (Sourcegraph / target).value / "index.scip"
       out.getParentFile.mkdirs()
       runProcess(
         sourcegraphCoursierBinary.value ::
           "launch" ::
-          "--contrib" ::
-          s"lsif-java:${sourcegraphLsifJavaVersion.value}" ::
+          s"com.sourcegraph:scip-java_2.13:${sourcegraphScipJavaVersion.value}" ::
+          "-M" ::
+          "com.sourcegraph.scip_java.ScipJava" ::
           "--" ::
           "index-semanticdb" ::
           s"--output=$out" ::
@@ -134,11 +135,11 @@ object SourcegraphPlugin extends AutoPlugin {
             "in https://github.com/sourcegraph/sbt-sourcegraph/blob/main/README.md"
         )
       }
-      val in = sourcegraphLsif.value
+      val in = sourcegraphScip.value
       val uploadCommand = List[Option[String]](
         Some(sourcegraphSrcBinary.value),
         sourcegraphEndpoint.value.map(url => s"--endpoint=$url"),
-        Some("lsif"),
+        Some("code-intel"),
         Some("upload"),
         Option(System.getenv("GITHUB_TOKEN"))
           .map(token => s"--github-token=$token"),
@@ -157,11 +158,11 @@ object SourcegraphPlugin extends AutoPlugin {
     sourcegraphSrcBinary := "src",
     sourcegraphEndpoint := None,
     sourcegraphExtraUploadArguments := Nil,
-    sourcegraphRoot := baseDirectory.in(ThisBuild).value,
-    target.in(Sourcegraph) := baseDirectory.in(ThisBuild).value /
+    sourcegraphRoot := (ThisBuild / baseDirectory).value,
+    (Sourcegraph / target) := (ThisBuild / baseDirectory).value /
       "target" / "sbt-sourcegraph",
     sourcegraphCoursierBinary := createCoursierBinary(
-      target.in(Sourcegraph).value
+      (Sourcegraph / target).value
     )
   )
 
@@ -258,8 +259,8 @@ object SourcegraphPlugin extends AutoPlugin {
 
   val relaxScalacOptionsConfigSettings: Seq[Def.Setting[_]] =
     Seq(
-      scalacOptions.in(compile) := {
-        val options = scalacOptions.in(compile).value
+      (compile / scalacOptions) := {
+        val options = (compile / scalacOptions).value
         options.filterNot { option =>
           scalacOptionsToRelax.exists(_.matcher(option).matches)
         }

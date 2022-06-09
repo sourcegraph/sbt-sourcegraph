@@ -36,18 +36,18 @@ object SourcegraphEnable {
       enableSemanticdbPlugin =
         List(
           Option(
-            allDependencies.in(p) +=
+            (p / allDependencies) +=
               "com.sourcegraph" % "semanticdb-javac" % semanticdbJavacVersion
           ),
           Option(
-            javacOptions.in(p) += s"-Xplugin:semanticdb " +
+            (p / javacOptions) += s"-Xplugin:semanticdb " +
               s"-build-tool:sbt " +
-              s"-sourceroot:${baseDirectory.in(ThisBuild).value} " +
-              s"-targetroot:${classDirectory.in(p, Compile).value.toPath().resolveSibling("semanticdb-classes")}"
+              s"-sourceroot:${(ThisBuild / baseDirectory).value} " +
+              s"-targetroot:${(p / Compile / classDirectory).value.toPath().resolveSibling("semanticdb-classes")}"
           ),
-          overriddenScalaVersion.map(v => scalaVersion.in(p) := v),
-          Option(SemanticdbPlugin.semanticdbEnabled.in(p) := true),
-          Option(SemanticdbPlugin.semanticdbVersion.in(p) := semanticdbVersion)
+          overriddenScalaVersion.map(v => (p / scalaVersion) := v),
+          Option((p / SemanticdbPlugin.semanticdbEnabled) := true),
+          Option((p / SemanticdbPlugin.semanticdbVersion) := semanticdbVersion)
         ).flatten
       settings <-
         inScope(ThisScope.in(p))(
@@ -78,17 +78,16 @@ object SourcegraphEnable {
         extracted
       )
       isSemanticdbEnabled =
-        libraryDependencies
-          .in(p)
+        (p / libraryDependencies)
           .get(extracted.structure.data)
           .exists(_.exists(_.name == "semanticdb-scalac"))
       if !isSemanticdbEnabled
       addSemanticdbCompilerPlugin = List(
         overriddenScalaVersion.map { v =>
-          scalaVersion.in(p) := v
+          (p / scalaVersion) := v
         },
         Option(
-          allDependencies.in(p) += compilerPlugin(
+          (p / allDependencies) += compilerPlugin(
             SourcegraphPlugin.autoImport.sourcegraphSemanticdb(
               semanticdbVersion
             )
@@ -105,8 +104,8 @@ object SourcegraphEnable {
 
   private val semanticdbConfigSettings: Seq[Def.Setting[_]] =
     Seq(
-      scalacOptions.in(compile) := {
-        val old = scalacOptions.in(compile).value
+      (compile / scalacOptions) := {
+        val old = (compile / scalacOptions).value
         val options = List(
           "-Yrangepos",
           "-Xplugin-require:semanticdb"
@@ -121,8 +120,7 @@ object SourcegraphEnable {
       extracted: Extracted
   ): Seq[(ProjectRef, String, Option[String])] = for {
     p <- extracted.structure.allProjectRefs
-    projectScalaVersion <- scalaVersion
-      .in(p)
+    projectScalaVersion <- (p / scalaVersion)
       .get(extracted.structure.data)
       .toList
     overriddenScalaVersion =

@@ -63,7 +63,7 @@ disable the upload job for pull requests and use Java 11.
         - main
 -     pull_request:
   jobs:
-    lsif:
+    sourcegraph:
       steps:
         - uses: olafurpg/setup-scala@v10
 +         with:
@@ -129,16 +129,16 @@ sbt sourcegraphUpload
 
 **Environment variables**:
 
-- (required) `GITHUB_TOKEN`: GitHub access token that's used to upload the LSIF
+- (required) `GITHUB_TOKEN`: GitHub access token that's used to upload the SCIP
   index.
-- (optional) `GITHUB_SHA`: the git commit sha that the LSIF index should be
+- (optional) `GITHUB_SHA`: the git commit sha that the SCIP index should be
   associated with on Sourcegraph.
 
 **Tasks**:
 
-- `sourcegraphLsif`: compiles all projects in the build and generates an LSIF
+- `sourcegraphScip`: compiles all projects in the build and generates an SCIP
   index from the compiled SemanticDB files.
-- `sourcegraphUpload`: uploads the LSIF index from `sourcegraphLsif` to
+- `sourcegraphUpload`: uploads the SCIP index from `sourcegraphScip` to
   Sourcegraph.
 
 **Optional settings**:
@@ -151,14 +151,17 @@ sbt sourcegraphUpload
   [`src`](https://github.com/sourcegraph/src-cli) binary. The `src` binary needs
   to be installed separately.
 - `sourcegraphExtraUploadArguments: List[String]`: additional arguments to use
-  for the `src lsif upload` command. Run `src lsif upload --help` for example
-  flags you may want to configure.
+  for the `src code-intel upload` command. Run `src code-intel upload --help`
+  for example flags you may want to configure.
 - `sourcegraphRoot: String`: root directory of this sbt build.
 
-**Removed settings**:
+**Removed settings and tasks**:
 
 - (no longer used) `sourcegraphLsifSemanticdbBinary: String`: path to the
   [`lsif-semanticdb`](https://github.com/sourcegraph/lsif-semanticdb/) binary.
+- `sourcegraphLsif` which has now been replaced with `sourcegraphScip`
+- `sourcegraphLsifVersion` which has now been replaced with
+  `sourcegraphScipJavaVersion`
 
 ## Disable plugin for specific project
 

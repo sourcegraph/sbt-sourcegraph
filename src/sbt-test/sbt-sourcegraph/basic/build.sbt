@@ -18,27 +18,14 @@ lazy val a = project
 lazy val b = project
   .dependsOn(a)
 
-commands += Command.command("checkLsif") { s =>
+commands += Command.command("checkSourcegraph") { s =>
   val dumpPath =
-    (ThisBuild / baseDirectory).value / "target" / "sbt-sourcegraph" / "dump.lsif"
-  val dump = Files.readAllLines(dumpPath.toPath).asScala
-  val packageInformation =
-    """.*"name":"(.*)","manager":"jvm-dependencies"}""".r
-  val jvmDependencies = dump
-    .collect { case packageInformation(name) =>
-      name
-    }
-    .distinct
-    .sorted
-  if (
-    jvmDependencies != List(
-      "jdk",
-      "maven/com.lihaoyi/geny_2.12",
-      "maven/junit/junit",
-      "maven/org.scala-lang/scala-library"
-    )
-  ) {
-    sys.error(jvmDependencies.toString)
-  }
+    (ThisBuild / baseDirectory).value / "target" / "sbt-sourcegraph" / "index.scip"
+  val index =
+    lib.codeintel.scip.Scip.Index.parseFrom(Files.readAllBytes(dumpPath.toPath))
+  val occurrences = index.getDocumentsList.asScala
+    .flatMap(_.getOccurrencesList.asScala)
+    .map(_.getSymbol)
+  println(occurrences)
   s
 }
