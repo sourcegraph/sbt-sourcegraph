@@ -13,8 +13,7 @@ jobs:
       - uses: coursier/setup-action@v1.1.2
         with:
           jvm: adopt:8
-          apps: lsif-java
-      - run: lsif-java index
+      - run: cs launch --contrib scip-java -- index
       - name: Upload LSIF data
         uses: sourcegraph/lsif-upload-action@master
         with:
