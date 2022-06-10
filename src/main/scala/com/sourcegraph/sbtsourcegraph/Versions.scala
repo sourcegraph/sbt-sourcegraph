@@ -25,7 +25,7 @@ object Versions {
       props.asScala.toMap
     } else {
       Map(
-        semanticdbJavacKey -> "0.6.3",
+        semanticdbJavacKey -> "0.8.0",
         "2.12.12" -> scalametaVersion,
         "2.13.6" -> scalametaVersion,
         "2.11.12" -> scalametaVersion

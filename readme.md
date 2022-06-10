@@ -136,7 +136,7 @@ sbt sourcegraphUpload
 
 **Tasks**:
 
-- `sourcegraphLsif`: compiles all projects in the build and generates an LSIF
+- `sourcegraphCompile`: compiles all projects in the build and generates an LSIF
   index from the compiled SemanticDB files.
 - `sourcegraphUpload`: uploads the LSIF index from `sourcegraphLsif` to
   Sourcegraph.
