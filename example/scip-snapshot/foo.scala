@@ -38,6 +38,17 @@
       AccountId(42).x
 //    ^^^^^^^^^ reference semanticdb maven _empty_/AccountId.
 //                  ^ reference semanticdb maven _empty_/AccountId#x.
+      val x = classOf[AccountId]
+//        ^ definition local 1
+//        documentation ```scala
+//            ^^^^^^^ reference semanticdb maven scala/Predef.classOf().
+//                    ^^^^^^^^^ reference semanticdb maven _empty_/AccountId#
+      val y = List.empty[AccountId]
+//        ^ definition local 2
+//        documentation ```scala
+//            ^^^^ reference semanticdb maven scala/package.List.
+//                 ^^^^^ reference semanticdb maven scala/collection/immutable/List.empty().
+//                       ^^^^^^^^^ reference semanticdb maven _empty_/AccountId#
     }
   }
   
