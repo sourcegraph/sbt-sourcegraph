@@ -4,19 +4,25 @@ on:
     branches:
       - main
   pull_request:
+
 jobs:
-  lsif:
+  scip:
     runs-on: ubuntu-latest
-    name: "Upload LSIF"
+    name: "Upload SCIP"
     steps:
-      - uses: actions/checkout@v2
-      - uses: coursier/setup-action@v1.1.2
+      - uses: actions/checkout@v3
+      - uses: coursier/setup-action@v1
         with:
-          jvm: adopt:8
-      - run: |
-          cs launch com.sourcegraph:scip-java_2.13:latest.stable -M com.sourcegraph.scip_java.ScipJava -- index
-      - run: yarn global add @sourcegraph/src
-      - run: |
-          src code-intel upload "-commit=${GITHUB_SHA}" "-github-token=${GITHUB_TOKEN}"
+          jvm: 'temurin:8'
+          apps: scip-java
+
+      - name: Generate SCIP File
+        run: scip-java index
+
+      - name: Install src
+        run: yarn global add @sourcegraph/src
+
+      - name: Upload SCIP file
+        run: src code-intel upload -github-token $GITHUB_TOKEN
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
