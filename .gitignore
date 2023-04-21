@@ -52,3 +52,4 @@ out/
 test-report.json
 dump.lsif
 index.scip
+.bsp/
