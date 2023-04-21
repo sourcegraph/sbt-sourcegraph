@@ -2,18 +2,12 @@ import scala.jdk.CollectionConverters._
 import java.util.Properties
 import com.sourcegraph.sbtsourcegraph.Versions
 
-val V = new {
-  def scala210 = "2.10.7"
-  def scala212 = "2.12.17"
-  def scalameta = "4.7.7"
-}
-
-scalaVersion := V.scala212
+scalaVersion := Versions.scala212
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0-alpha.1"
 ThisBuild / versionScheme := Some("early-semver")
 organization := "com.sourcegraph"
 semanticdbEnabled := !scalaVersion.value.startsWith("2.10")
-semanticdbVersion := V.scalameta
+semanticdbVersion := Versions.scalametaVersion
 homepage := Some(url("https://github.com/sourcegraph/sbt-sourcegraph"))
 licenses := List(
   "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
@@ -57,9 +51,9 @@ Compile / resourceGenerators += Def.task {
   }
   List(out)
 }
-crossScalaVersions := Seq(V.scala212, V.scala210)
+crossScalaVersions := Seq(Versions.scala212, Versions.scala210)
 scalacOptions ++= {
-  if (scalaVersion.value == V.scala210) List()
+  if (scalaVersion.value == Versions.scala210) List()
   else List("-Xlint:unused")
 }
 

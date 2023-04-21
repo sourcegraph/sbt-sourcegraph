@@ -7,7 +7,10 @@ import scala.collection.JavaConverters._
 import scala.sys.process._
 
 object Versions {
-  def scalametaVersion = "4.4.26"
+  def scalametaVersion = "4.7.7"
+  def scala211 = "2.11.12"
+  def scala212 = "2.12.17"
+  def scala213 = "2.13.10"
   private def semanticdbJavacKey = "semanticdb-javac"
 
   def semanticdbJavacVersion(): String =
@@ -26,9 +29,9 @@ object Versions {
     } else {
       Map(
         semanticdbJavacKey -> "0.8.0",
-        "2.12.12" -> scalametaVersion,
-        "2.13.6" -> scalametaVersion,
-        "2.11.12" -> scalametaVersion
+        scala211 -> scalametaVersion,
+        scala212 -> scalametaVersion,
+        scala213 -> scalametaVersion
       ).withDefaultValue(scalametaVersion)
     }
   }
