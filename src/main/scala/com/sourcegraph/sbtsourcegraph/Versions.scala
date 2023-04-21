@@ -8,6 +8,7 @@ import scala.sys.process._
 
 object Versions {
   def scalametaVersion = "4.7.7"
+  def scala210 = "2.10.7"
   def scala211 = "2.11.12"
   def scala212 = "2.12.17"
   def scala213 = "2.13.10"
