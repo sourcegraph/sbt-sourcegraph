@@ -10,7 +10,7 @@ jobs:
     name: "Upload LSIF"
     steps:
       - uses: actions/checkout@v2
-      - uses: coursier/setup-action@v1.1.2
+      - uses: coursier/setup-action@v1.3.3
         with:
           jvm: adopt:8
       - run: |
