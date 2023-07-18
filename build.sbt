@@ -2,17 +2,12 @@ import scala.jdk.CollectionConverters._
 import java.util.Properties
 import com.sourcegraph.sbtsourcegraph.Versions
 
-val V = new {
-  def scala212 = "2.12.12"
-  def scalameta = "4.4.25"
-}
-
-scalaVersion := V.scala212
+scalaVersion := Versions.scala212
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.5.0-alpha.1"
 ThisBuild / versionScheme := Some("early-semver")
 organization := "com.sourcegraph"
 semanticdbEnabled := !scalaVersion.value.startsWith("2.10")
-semanticdbVersion := "4.4.26"
+semanticdbVersion := Versions.scalametaVersion
 homepage := Some(url("https://github.com/sourcegraph/sbt-sourcegraph"))
 licenses := List(
   "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")
@@ -39,8 +34,6 @@ commands +=
   }
 
 // Cross-building settings (see https://github.com/sbt/sbt/issues/3473#issuecomment-325729747)
-def scala212 = "2.12.13"
-def scala210 = "2.10.7"
 
 sbtPlugin := true
 moduleName := "sbt-sourcegraph"
@@ -51,14 +44,16 @@ Compile / resourceGenerators += Def.task {
   if (!out.exists()) {
     val versions = Versions.semanticdbVersionsByScalaVersion()
     val props = new Properties()
-    props.putAll(versions.asJava)
+    versions.foreach { case (scalaVersion, semanticdbVersion) =>
+      props.put(scalaVersion, semanticdbVersion)
+    }
     IO.write(props, "SemanticDB versions grouped by Scala version.", out)
   }
   List(out)
 }
-crossScalaVersions := Seq(scala212, scala210)
+crossScalaVersions := Seq(Versions.scala212, Versions.scala210)
 scalacOptions ++= {
-  if (scalaVersion.value == scala210) List()
+  if (scalaVersion.value == Versions.scala210) List()
   else List("-Xlint:unused")
 }
 

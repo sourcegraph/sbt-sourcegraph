@@ -1,10 +1,10 @@
-/**
- * Adaptation of the `scalafixEnable` command from sbt-scalafix with the following modifications:
- * - use older SemanticDB versions instead of upgrading the Scala version.
- * - configure the semanticdb-javac compiler plugin for Java projects.
- * Original license: Apache 2
- * Original source: https://github.com/scalacenter/sbt-scalafix/blob/cdee753f15bde75d84d93c26695d14fc3ec964f8/src/main/scala/scalafix/sbt/ScalafixEnable.scala
- */
+/** Adaptation of the `scalafixEnable` command from sbt-scalafix with the
+  * following modifications:
+  *   - use older SemanticDB versions instead of upgrading the Scala version.
+  *   - configure the semanticdb-javac compiler plugin for Java projects.
+  *     Original license: Apache 2 Original source:
+  *     https://github.com/scalacenter/sbt-scalafix/blob/cdee753f15bde75d84d93c26695d14fc3ec964f8/src/main/scala/scalafix/sbt/ScalafixEnable.scala
+  */
 package com.sourcegraph.sbtsourcegraph
 
 import sbt._
