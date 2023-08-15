@@ -140,7 +140,6 @@ object SourcegraphEnable {
       )
         Some("2.11.12")
       else None
-    // For Scala 3 projects,
     semanticdbVersion = Versions
       .semanticdbVersion(overriddenScalaVersion.getOrElse(projectScalaVersion))
   } yield (p, semanticdbVersion, overriddenScalaVersion)
