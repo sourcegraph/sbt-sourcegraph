@@ -60,9 +60,10 @@ object SourcegraphEnable {
             SemanticdbPlugin.semanticdbVersion.in(p) := ver
           ),
           Option(
-            javaHome.in(p) := javaHome.in(p).value orElse Some(
+            javaHome.in(p) := javaHome.in(p).value orElse Some {
+              println("Oopsie daisy, javaHome is not set")
               new File(System.getProperty("java.home"))
-            )
+            }
           )
         ).flatten
       settings <-
