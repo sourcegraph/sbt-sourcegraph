@@ -10,11 +10,14 @@ jobs:
     name: "Upload LSIF"
     steps:
       - uses: actions/checkout@v2
-      - uses: coursier/setup-action@v1.1.2
+      - uses: actions/setup-java@v3
         with:
-          jvm: adopt:8
+          distribution: "temurin"
+          cache: "sbt"
+          java-version: 17
       - run: |
-          cs launch com.sourcegraph:scip-java_2.13:latest.stable -M com.sourcegraph.scip_java.ScipJava -- index
+          curl -fL "https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz" | gzip -d > cs && chmod +x cs
+          ./cs launch com.sourcegraph:scip-java_2.13:latest.stable -M com.sourcegraph.scip_java.ScipJava -- index
       - run: yarn global add @sourcegraph/src
       - run: |
           src code-intel upload "-commit=${GITHUB_SHA}" "-github-token=${GITHUB_TOKEN}"

@@ -17,6 +17,15 @@ lazy val a = project
 
 lazy val b = project
   .dependsOn(a)
+  .settings(
+    // Test to ensure the plugin works with explicitly set java home
+    // On Java 8 the java.home property returns JRE path, not JDK path.
+    // so we try and work around it hoping that JAVA_HOME is set by executing
+    // environment
+    javaHome := Some(
+      new File(sys.env.getOrElse("JAVA_HOME", System.getProperty("java.home")))
+    )
+  )
 
 commands += Command.command("checkLsif") { s =>
   val dumpPath =
@@ -32,6 +41,7 @@ commands += Command.command("checkLsif") { s =>
     .filterNot(_ == ".")
     .distinct
     .sorted
+    .toList
   if (
     packageNames != List(
       "jdk",

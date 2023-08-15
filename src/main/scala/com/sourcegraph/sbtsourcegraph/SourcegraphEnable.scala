@@ -38,6 +38,13 @@ object SourcegraphEnable {
       enableSemanticdbPlugin =
         List(
           Option(
+            javacOptions.in(p) ++= {
+              if (Versions.isJavaAtLeast(17, home = javaHome.in(p).value))
+                javacModuleOptions
+              else Nil
+            }
+          ),
+          Option(
             allDependencies.in(p) +=
               "com.sourcegraph" % "semanticdb-javac" % semanticdbJavacVersion
           ),
@@ -51,6 +58,11 @@ object SourcegraphEnable {
           Option(SemanticdbPlugin.semanticdbEnabled.in(p) := true),
           semanticdbVersion.map(ver =>
             SemanticdbPlugin.semanticdbVersion.in(p) := ver
+          ),
+          Option(
+            javaHome.in(p) := javaHome.in(p).value orElse Some(
+              new File(System.getProperty("java.home"))
+            )
           )
         ).flatten
       settings <-
@@ -101,6 +113,16 @@ object SourcegraphEnable {
                 )
               )
             }.toSeq
+        ),
+        Option(
+          javacOptions.in(p) ++= {
+            if (Versions.isJavaAtLeast(17)) javacModuleOptions else Nil
+          }
+        ),
+        Option(
+          javaHome.in(p) := javaHome.in(p).value orElse Some(
+            new File(System.getProperty("java.home"))
+          )
         )
       ).flatten
       settings <-
@@ -143,4 +165,18 @@ object SourcegraphEnable {
     semanticdbVersion = Versions
       .semanticdbVersion(overriddenScalaVersion.getOrElse(projectScalaVersion))
   } yield (p, semanticdbVersion, overriddenScalaVersion)
+
+  def javacModuleOptions =
+    List(
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+    )
 }
