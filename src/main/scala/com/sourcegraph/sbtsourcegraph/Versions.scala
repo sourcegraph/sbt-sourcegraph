@@ -81,24 +81,26 @@ object Versions {
               val proc = {
                 val cmd =
                   if (scala.util.Properties.isWin)
-                    Paths.get("bin", "javac.exe")
-                  else Paths.get("bin", "javac")
+                    Paths.get("bin", "java")
+                  else Paths.get("bin", "java")
 
-                val stdout = scala.sys.process
+                scala.sys.process
                   .Process(Seq(cmd.toString(), "-version"), cwd = javaHome)
                   .!!(ProcessLogger(sb.append(_)))
                   .trim
-
-                // Java 8 sends output to stderr...
-                if (stdout.isEmpty()) sb.result().trim else stdout
               }
 
-              proc.split(" ").toList match {
-                case "javac" :: version :: Nil => version
-                case other =>
+              val rgx = "version \"(.*?)\"".r
+
+              rgx.findFirstMatchIn(
+                proc.linesIterator.take(1).mkString("")
+              ) match {
+                case None =>
                   sys.error(
-                    s"Cannot process javac output (in $javaHome): [$proc]"
+                    s"Cannot process [java -version] output (in $javaHome): [$proc]"
                   )
+                case Some(value) =>
+                  value.group(1)
               }
           }
 
