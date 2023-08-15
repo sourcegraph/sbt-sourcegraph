@@ -25,9 +25,11 @@ object SourcegraphEnable {
         |2. conditionally sets semanticdbVersion & scalaVersion when support is not built-in in the compiler""".stripMargin
   ) { s =>
     val extracted = Project.extract(s)
+
     val scalacOptionsSettings = Seq(Compile, Test).flatMap(
       inConfig(_)(SourcegraphPlugin.relaxScalacOptionsConfigSettings)
     )
+
     val semanticdbJavacVersion = Versions.semanticdbJavacVersion()
     val settings = for {
       (p, semanticdbVersion, overriddenScalaVersion) <- collectProjects(
@@ -47,13 +49,16 @@ object SourcegraphEnable {
           ),
           overriddenScalaVersion.map(v => scalaVersion.in(p) := v),
           Option(SemanticdbPlugin.semanticdbEnabled.in(p) := true),
-          Option(SemanticdbPlugin.semanticdbVersion.in(p) := semanticdbVersion)
+          semanticdbVersion.map(ver =>
+            SemanticdbPlugin.semanticdbVersion.in(p) := ver
+          )
         ).flatten
       settings <-
         inScope(ThisScope.in(p))(
           scalacOptionsSettings
         ) ++ enableSemanticdbPlugin
     } yield settings
+
     Compat.append(extracted, settings, s)
   }
 
@@ -88,11 +93,14 @@ object SourcegraphEnable {
           scalaVersion.in(p) := v
         },
         Option(
-          allDependencies.in(p) += compilerPlugin(
-            SourcegraphPlugin.autoImport.sourcegraphSemanticdb(
-              semanticdbVersion
-            )
-          )
+          allDependencies.in(p) ++=
+            semanticdbVersion.map { ver =>
+              compilerPlugin(
+                SourcegraphPlugin.autoImport.sourcegraphSemanticdb(
+                  ver
+                )
+              )
+            }.toSeq
         )
       ).flatten
       settings <-
@@ -105,8 +113,8 @@ object SourcegraphEnable {
 
   private val semanticdbConfigSettings: Seq[Def.Setting[_]] =
     Seq(
-      scalacOptions.in(compile) := {
-        val old = scalacOptions.in(compile).value
+      scalacOptions := {
+        val old = scalacOptions.value
         val options = List(
           "-Yrangepos",
           "-Xplugin-require:semanticdb"
@@ -119,7 +127,7 @@ object SourcegraphEnable {
 
   private def collectProjects[U](
       extracted: Extracted
-  ): Seq[(ProjectRef, String, Option[String])] = for {
+  ): Seq[(ProjectRef, Option[String], Option[String])] = for {
     p <- extracted.structure.allProjectRefs
     projectScalaVersion <- scalaVersion
       .in(p)
@@ -132,8 +140,8 @@ object SourcegraphEnable {
       )
         Some("2.11.12")
       else None
-    semanticdbVersion <- Versions
+    // For Scala 3 projects,
+    semanticdbVersion = Versions
       .semanticdbVersion(overriddenScalaVersion.getOrElse(projectScalaVersion))
-      .toList
   } yield (p, semanticdbVersion, overriddenScalaVersion)
 }
