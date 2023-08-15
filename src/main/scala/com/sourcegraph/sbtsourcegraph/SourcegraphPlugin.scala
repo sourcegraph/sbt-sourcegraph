@@ -180,13 +180,26 @@ object SourcegraphPlugin extends AutoPlugin {
   def configSettings: Seq[Def.Setting[_]] = List(
     sourcegraphUpload := sourcegraphUpload.value,
     sourcegraphScalacTargetroot := {
-      val customDirectory = (for {
-        option <- scalacOptions.value
-        if option.startsWith("-P:semanticdb:targetroot:")
-      } yield new File(
-        option.stripPrefix("-P:semanticdb:targetroot:")
-      )).lastOption
-      customDirectory.getOrElse(classDirectory.value)
+      val scala2Prefix = "-P:semanticdb:targetroot:"
+      val scala3Prefix = "-semanticdb-target"
+
+      val customDirectory = scalacOptions.value
+        .collectFirst {
+          case flag if flag.startsWith(scala2Prefix) =>
+            flag.stripPrefix(scala2Prefix)
+          case flag if flag.startsWith(scala3Prefix) =>
+            flag.stripPrefix(scala3Prefix)
+        }
+        .map(new File(_))
+
+      lazy val root = SemanticdbPlugin.semanticdbTargetRoot.?.value
+
+      val explicitRoot =
+        if (SemanticdbPlugin.isAvailable())
+          root
+        else None
+
+      explicitRoot.orElse(customDirectory).getOrElse(classDirectory.value)
     },
     sourcegraphJavacTargetroot := {
       (for {

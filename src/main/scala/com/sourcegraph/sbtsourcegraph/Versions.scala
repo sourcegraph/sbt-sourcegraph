@@ -15,7 +15,12 @@ object Versions {
       throw new NoSuchElementException(semanticdbJavacKey)
     )
   def semanticdbVersion(scalaVersion: String): Option[String] =
-    cachedSemanticdbVersionsByScalaVersion.get(scalaVersion)
+    // Scala 3 has semanticdb generation built in, so we don't need to
+    // add the semanticdb-scalac plugin
+    if (scalaVersion.startsWith("3."))
+      None
+    else
+      cachedSemanticdbVersionsByScalaVersion.get(scalaVersion)
   lazy val cachedSemanticdbVersionsByScalaVersion: Map[String, String] = {
     val key = "/sbt-sourcegraph/semanticdb.properties"
     val in = this.getClass().getResourceAsStream(key)

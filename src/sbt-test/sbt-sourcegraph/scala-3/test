@@ -1,0 +1,4 @@
+> sourcegraphEnable
+> show semanticdbEnabled
+> show Compile/semanticdbEnabled
+> sourcegraphCompile
