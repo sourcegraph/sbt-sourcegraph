@@ -62,21 +62,7 @@ object SourcegraphEnable {
           ),
           Option(
             javaHome.in(p) := {
-              javaHome.in(p).value orElse {
-                // We can safely use java.home property
-                // on JDK 17+ as it won't be pointing to JRE which
-                // doesn't contain a compiler.
-                if (Versions.isJavaAtLeast(17)) {
-                  // On JDK 17+ we need to explicitly fork the compiler
-                  // so that we can set the necessary JVM options to access
-                  // jdk.compiler module
-                  Some(new File(System.getProperty("java.home")))
-                } else {
-                  // If JDK is below 17, we don't actually need to
-                  // fork the compiler, so we can keep javaHome empty
-                  None
-                }
-              }
+              javaHome.in(p).value orElse calculateJavaHome
             }
           )
         ).flatten
@@ -135,9 +121,7 @@ object SourcegraphEnable {
           }
         ),
         Option(
-          javaHome.in(p) := javaHome.in(p).value orElse Some(
-            new File(System.getProperty("java.home"))
-          )
+          javaHome.in(p) := javaHome.in(p).value orElse calculateJavaHome
         )
       ).flatten
       settings <-
@@ -194,4 +178,20 @@ object SourcegraphEnable {
       "-J--add-exports",
       "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
     )
+
+  private def calculateJavaHome = {
+    // We can safely use java.home property
+    // on JDK 17+ as it won't be pointing to JRE which
+    // doesn't contain a compiler.
+    if (Versions.isJavaAtLeast(17)) {
+      // On JDK 17+ we need to explicitly fork the compiler
+      // so that we can set the necessary JVM options to access
+      // jdk.compiler module
+      Some(new File(System.getProperty("java.home")))
+    } else {
+      // If JDK is below 17, we don't actually need to
+      // fork the compiler, so we can keep javaHome empty
+      None
+    }
+  }
 }
