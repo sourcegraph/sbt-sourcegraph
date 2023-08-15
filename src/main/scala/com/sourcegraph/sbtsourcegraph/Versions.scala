@@ -87,7 +87,8 @@ object Versions {
                 scala.sys.process
                   .Process(Seq(cmd.toString(), "-version"), cwd = javaHome)
                   .!!(ProcessLogger(sb.append(_)))
-                  .trim
+
+                sb.result().trim
               }
 
               val rgx = "version \"(.*?)\"".r
