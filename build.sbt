@@ -51,7 +51,9 @@ Compile / resourceGenerators += Def.task {
   if (!out.exists()) {
     val versions = Versions.semanticdbVersionsByScalaVersion()
     val props = new Properties()
-    props.putAll(versions.asJava)
+    versions.foreach { case (k, v) =>
+      props.put(k, v)
+    }
     IO.write(props, "SemanticDB versions grouped by Scala version.", out)
   }
   List(out)
@@ -84,3 +86,4 @@ scriptedLaunchOpts ++= Seq(
 )
 
 def isCI = "true" == System.getenv("CI")
+ThisBuild / version := { if (!isCI) "dev" else version.value }
