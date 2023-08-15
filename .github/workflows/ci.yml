@@ -19,7 +19,9 @@ jobs:
           distribution: "temurin"
           cache: "sbt"
           java-version: ${{ matrix.java }}
-      - run: sbt scripted +test
+      - run: |
+        ls $JAVA_HOME
+        sbt scripted +test
 
   check:
     runs-on: ubuntu-latest
