@@ -166,7 +166,7 @@ object SourcegraphEnable {
       .semanticdbVersion(overriddenScalaVersion.getOrElse(projectScalaVersion))
   } yield (p, semanticdbVersion, overriddenScalaVersion)
 
-  def javacModuleOptions =
+  def javacModuleOptions: List[String] =
     List(
       "-J--add-exports",
       "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",

@@ -68,7 +68,7 @@ object Versions {
 
   private val jvmVersionCache = collection.mutable.Map.empty[Option[File], Int]
 
-  def isJavaAtLeast(n: Int, home: Option[File] = None) = {
+  def isJavaAtLeast(n: Int, home: Option[File] = None): Boolean = {
 
     val significant = jvmVersionCache.getOrElseUpdate(
       home, {
