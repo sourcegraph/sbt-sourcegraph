@@ -22,9 +22,14 @@ lazy val b = project
     // On Java 8 the java.home property returns JRE path, not JDK path.
     // so we try and work around it hoping that JAVA_HOME is set by executing
     // environment
-    javaHome := Some(
-      new File(sys.env.getOrElse("JAVA_HOME", System.getProperty("java.home")))
-    )
+    javaHome := {
+      println(sys.env.get("JAVA_HOME"))
+      Some(
+        new File(
+          sys.env.getOrElse("JAVA_HOME", System.getProperty("java.home"))
+        )
+      )
+    }
   )
 
 commands += Command.command("checkLsif") { s =>
