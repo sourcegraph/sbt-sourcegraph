@@ -20,8 +20,9 @@ jobs:
           cache: "sbt"
           java-version: ${{ matrix.java }}
       - run: |
-        ls $JAVA_HOME
-        sbt scripted +test
+          ls $JAVA_HOME
+          sbt scripted +test
+        shell: bash
 
   check:
     runs-on: ubuntu-latest
