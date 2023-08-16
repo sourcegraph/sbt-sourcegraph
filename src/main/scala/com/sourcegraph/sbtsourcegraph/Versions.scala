@@ -5,6 +5,7 @@ import java.nio.file.Paths
 import java.util.Properties
 import scala.collection.JavaConverters._
 import scala.sys.process._
+import java.io.File
 
 object Versions {
   def scalametaVersion = "4.4.26"
@@ -63,6 +64,67 @@ object Versions {
     Files.deleteIfExists(Paths.get(coursier))
     versions.toList.toMap
       .updated(semanticdbJavacKey, semanticdbJavacVersions.last)
+  }
+
+  private val jvmVersionCache = collection.mutable.Map.empty[Option[File], Int]
+
+  def isJavaAtLeast(n: Int, home: Option[File] = None): Boolean = {
+
+    val significant = jvmVersionCache.getOrElseUpdate(
+      home, {
+        val raw =
+          home match {
+            case None =>
+              System.getProperty("java.version")
+            case Some(javaHome) =>
+              val sb = new StringBuilder
+              val proc = {
+                val cmd =
+                  if (scala.util.Properties.isWin)
+                    Paths.get("bin", "java")
+                  else Paths.get("bin", "java")
+
+                scala.sys.process
+                  .Process(Seq(cmd.toString(), "-version"), cwd = javaHome)
+                  .!!(ProcessLogger(sb.append(_)))
+
+                sb.result().trim
+              }
+
+              val rgx = "version \"(.*?)\"".r
+
+              rgx.findFirstMatchIn(
+                proc.linesIterator.take(1).mkString("")
+              ) match {
+                case None =>
+                  sys.error(
+                    s"Cannot process [java -version] output (in $javaHome): [$proc]"
+                  )
+                case Some(value) =>
+                  value.group(1)
+              }
+          }
+
+        val prop = raw.takeWhile(c => c.isDigit || c == '.')
+
+        val segments = prop.split("\\.").toList
+
+        segments match {
+          // Java 1.6 - 1.8
+          case "1" :: lessThan8 :: _ :: Nil => lessThan8.toInt
+          // Java 17.0.1, ..
+          case modern :: _ :: _ :: Nil => modern.toInt
+          // Java 12
+          case modern :: Nil => modern.toInt
+          case other =>
+            sys.error(
+              s"Cannot process java.home property, unknown format: [$raw]"
+            )
+        }
+      }
+    )
+
+    significant >= n
   }
 
   private def proc(cmd: String*): List[String] = {

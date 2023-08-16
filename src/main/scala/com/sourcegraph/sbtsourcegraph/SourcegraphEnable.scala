@@ -31,12 +31,20 @@ object SourcegraphEnable {
     )
 
     val semanticdbJavacVersion = Versions.semanticdbJavacVersion()
+
     val settings = for {
       (p, semanticdbVersion, overriddenScalaVersion) <- collectProjects(
         extracted
       )
       enableSemanticdbPlugin =
         List(
+          Option(
+            javacOptions.in(p) ++= {
+              if (Versions.isJavaAtLeast(17, home = javaHome.in(p).value))
+                javacModuleOptions
+              else Nil
+            }
+          ),
           Option(
             allDependencies.in(p) +=
               "com.sourcegraph" % "semanticdb-javac" % semanticdbJavacVersion
@@ -51,6 +59,11 @@ object SourcegraphEnable {
           Option(SemanticdbPlugin.semanticdbEnabled.in(p) := true),
           semanticdbVersion.map(ver =>
             SemanticdbPlugin.semanticdbVersion.in(p) := ver
+          ),
+          Option(
+            javaHome.in(p) := {
+              javaHome.in(p).value orElse calculateJavaHome
+            }
           )
         ).flatten
       settings <-
@@ -101,6 +114,14 @@ object SourcegraphEnable {
                 )
               )
             }.toSeq
+        ),
+        Option(
+          javacOptions.in(p) ++= {
+            if (Versions.isJavaAtLeast(17)) javacModuleOptions else Nil
+          }
+        ),
+        Option(
+          javaHome.in(p) := javaHome.in(p).value orElse calculateJavaHome
         )
       ).flatten
       settings <-
@@ -143,4 +164,34 @@ object SourcegraphEnable {
     semanticdbVersion = Versions
       .semanticdbVersion(overriddenScalaVersion.getOrElse(projectScalaVersion))
   } yield (p, semanticdbVersion, overriddenScalaVersion)
+
+  def javacModuleOptions: List[String] =
+    List(
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+    )
+
+  private def calculateJavaHome = {
+    // We can safely use java.home property
+    // on JDK 17+ as it won't be pointing to JRE which
+    // doesn't contain a compiler.
+    if (Versions.isJavaAtLeast(17)) {
+      // On JDK 17+ we need to explicitly fork the compiler
+      // so that we can set the necessary JVM options to access
+      // jdk.compiler module
+      Some(new File(System.getProperty("java.home")))
+    } else {
+      // If JDK is below 17, we don't actually need to
+      // fork the compiler, so we can keep javaHome empty
+      None
+    }
+  }
 }

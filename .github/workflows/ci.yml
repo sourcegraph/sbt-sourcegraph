@@ -7,13 +7,30 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        java: [8, 11, 17]
     steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v13
-      - run: sbt scripted +test
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          cache: "sbt"
+          java-version: ${{ matrix.java }}
+      - run: |
+          ls $JAVA_HOME
+          sbt scripted +test
+        shell: bash
+
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: olafurpg/setup-scala@v13
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          cache: "sbt"
+          java-version: 17
       - run: sbt checkAll
