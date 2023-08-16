@@ -6,6 +6,7 @@ import java.util.Properties
 import scala.collection.JavaConverters._
 import scala.sys.process._
 import java.io.File
+import java.nio.file.Path
 
 object Versions {
   def scalametaVersion = "4.4.26"
@@ -67,6 +68,43 @@ object Versions {
   }
 
   private val jvmVersionCache = collection.mutable.Map.empty[Option[File], Int]
+  private var printJavaVersionPath = Option.empty[Path]
+  private def printJavaVersionFolder = {
+    def create = {
+      val dir =
+        Files.createTempDirectory("print-java-version")
+      val file = dir.resolve("PrintJavaVersion.class")
+      val base64 = scala.io.Source
+        .fromInputStream(
+          getClass()
+            .getResourceAsStream(
+              "/sbt-sourcegraph/PrintJavaVersion.class.base64"
+            )
+        )
+        .mkString
+        .trim
+
+      val contents = java.util.Base64.getDecoder().decode(base64)
+
+      Files.write(file, contents)
+      dir
+    }
+
+    printJavaVersionPath.synchronized {
+      printJavaVersionPath match {
+
+        case Some(value)
+            if value.resolve("PrintJavaVersion.class").toFile.isFile =>
+          value
+        case _ =>
+          val created = create
+          printJavaVersionPath = Some(created)
+          created
+
+      }
+    }
+
+  }
 
   def isJavaAtLeast(n: Int, home: Option[File] = None): Boolean = {
 
@@ -77,32 +115,24 @@ object Versions {
             case None =>
               System.getProperty("java.version")
             case Some(javaHome) =>
-              val sb = new StringBuilder
-              val proc = {
-                val cmd =
-                  if (scala.util.Properties.isWin)
-                    Paths.get("bin", "java")
-                  else Paths.get("bin", "java")
+              val dir = printJavaVersionFolder
 
-                scala.sys.process
-                  .Process(Seq(cmd.toString(), "-version"), cwd = javaHome)
-                  .!!(ProcessLogger(sb.append(_)))
+              val cmd =
+                if (scala.util.Properties.isWin)
+                  Paths.get("bin", "java")
+                else Paths.get("bin", "java")
 
-                sb.result().trim
-              }
-
-              val rgx = "version \"(.*?)\"".r
-
-              rgx.findFirstMatchIn(
-                proc.linesIterator.take(1).mkString("")
-              ) match {
-                case None =>
-                  sys.error(
-                    s"Cannot process [java -version] output (in $javaHome): [$proc]"
-                  )
-                case Some(value) =>
-                  value.group(1)
-              }
+              scala.sys.process
+                .Process(
+                  Seq(
+                    cmd.toString(),
+                    "-cp",
+                    dir.toString(),
+                    "PrintJavaVersion"
+                  ),
+                  cwd = javaHome
+                )
+                .!!
           }
 
         val prop = raw.takeWhile(c => c.isDigit || c == '.')
