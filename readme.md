@@ -27,7 +27,7 @@ Next, add the sbt plugin to your build in `project/plugins.sbt`.
 
 ```diff
   // project/plugins.sbt
-+ addSbtPlugin("com.sourcegraph" % "sbt-sourcegraph" % "0.2.1")
++ addSbtPlugin("com.sourcegraph" % "sbt-sourcegraph" % "0.4.0")
 ```
 
 Next, enable SemanticDB in `build.sbt` and use the latest version of SemanticDB.
@@ -83,10 +83,7 @@ If you don't want to enable SemanticDB in `build.sbt`, you can do it a single
 sbt session inside the upload CI job.
 
 ```sh
-$ sbt \
-    'set every semanticdbEnabled := true' \
-    'set every semanticdbVersion := "LATEST_VERSION"' \
-    sourcegraphUpload
+$ sbt sourcegraphEnable sourcegraphUpload
 ```
 
 If you have projects that don't work with SemanticDB, you can optionally enable
@@ -151,14 +148,9 @@ sbt sourcegraphUpload
   [`src`](https://github.com/sourcegraph/src-cli) binary. The `src` binary needs
   to be installed separately.
 - `sourcegraphExtraUploadArguments: List[String]`: additional arguments to use
-  for the `src lsif upload` command. Run `src lsif upload --help` for example
+  for the `src code-intel upload` command. Run `src code-intel upload --help` for example
   flags you may want to configure.
 - `sourcegraphRoot: String`: root directory of this sbt build.
-
-**Removed settings**:
-
-- (no longer used) `sourcegraphLsifSemanticdbBinary: String`: path to the
-  [`lsif-semanticdb`](https://github.com/sourcegraph/lsif-semanticdb/) binary.
 
 ## Disable plugin for specific project
 

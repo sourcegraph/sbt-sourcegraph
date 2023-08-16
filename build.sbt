@@ -84,6 +84,3 @@ scriptedLaunchOpts ++= Seq(
   s"-Dscip-java.version=${Versions.semanticdbJavacVersion()}",
   s"-Dplugin.version=${version.value}"
 )
-
-def isCI = "true" == System.getenv("CI")
-ThisBuild / version := { if (!isCI) "dev" else version.value }
