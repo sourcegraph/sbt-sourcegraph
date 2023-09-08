@@ -142,13 +142,13 @@ object Versions {
         segments match {
           // Java 1.6 - 1.8
           case "1" :: lessThan8 :: _ :: Nil => lessThan8.toInt
-          // Java 17.0.1, ..
-          case modern :: _ :: _ :: Nil => modern.toInt
+          // Java 17.0.1, 11.0.20.1, ..
+          case modern :: _ :: _ :: rest => modern.toInt
           // Java 12
           case modern :: Nil => modern.toInt
           case other =>
             sys.error(
-              s"Cannot process java.home property, unknown format: [$raw]"
+              s"Cannot process [java.version] property, unknown format: [$raw]"
             )
         }
       }

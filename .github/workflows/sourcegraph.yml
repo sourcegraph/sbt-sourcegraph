@@ -7,7 +7,7 @@ on:
 jobs:
   lsif:
     runs-on: ubuntu-latest
-    name: "Upload LSIF"
+    name: "Upload SCIP"
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v3
@@ -15,11 +15,12 @@ jobs:
           distribution: "temurin"
           cache: "sbt"
           java-version: 17
-      - run: |
-          curl -fL "https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz" | gzip -d > cs && chmod +x cs
-          ./cs launch com.sourcegraph:scip-java_2.13:latest.stable -M com.sourcegraph.scip_java.ScipJava -- index
+      - run: sbt dumpVersion publishLocal
+      - run: echo "addSbtPlugin(\"com.sourcegraph\" % \"sbt-sourcegraph\" % \"$(cat VERSION)\")" > project/sourcegraph_generated.sbt
+      - run: sbt sourcegraphEnable sourcegraphScip
       - run: yarn global add @sourcegraph/src
       - run: |
+          mv target/sbt-sourcegraph/index.scip index.scip
           src code-intel upload "-commit=${GITHUB_SHA}" "-github-token=${GITHUB_TOKEN}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
