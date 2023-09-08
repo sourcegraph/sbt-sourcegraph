@@ -20,6 +20,7 @@ jobs:
       - run: sbt sourcegraphEnable sourcegraphScip
       - run: yarn global add @sourcegraph/src
       - run: |
+          mv target/sbt-sourcegraph/index.scip index.scip
           src code-intel upload "-commit=${GITHUB_SHA}" "-github-token=${GITHUB_TOKEN}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
