@@ -84,3 +84,15 @@ scriptedLaunchOpts ++= Seq(
   s"-Dscip-java.version=${Versions.semanticdbJavacVersion()}",
   s"-Dplugin.version=${version.value}"
 )
+
+lazy val dumpVersion = taskKey[Unit](
+  "Dump the version of sbt-sourcegraph to a VERSION file"
+)
+dumpVersion := {
+  val versionValue = version.value
+
+  val path = (ThisBuild / baseDirectory).value / "VERSION"
+  IO.write(path, versionValue)
+
+  sLog.value.info(s"Dumping version [$versionValue] to path [$path]")
+}
