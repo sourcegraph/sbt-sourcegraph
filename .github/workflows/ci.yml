@@ -19,10 +19,13 @@ jobs:
           distribution: "temurin"
           cache: "sbt"
           java-version: ${{ matrix.java }}
-      - run: |
-          ls $JAVA_HOME
-          sbt scripted +test
-        shell: bash
+
+      - name: SBT 1.x tests
+        run: sbt scripted +test
+        
+      - name: SBT 0.13.x tests
+        run: sbt +publishLocal 'scripted sbt-sourcegraph/basic-sbt0.13'
+
 
   check:
     runs-on: ubuntu-latest
