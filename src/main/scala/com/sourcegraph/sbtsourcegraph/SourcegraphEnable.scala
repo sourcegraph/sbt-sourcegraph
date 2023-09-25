@@ -17,6 +17,8 @@ object SourcegraphEnable {
     if (SemanticdbPlugin.isAvailable()) withSemanticdbPlugin
     else withSemanticdbScalac
 
+  private lazy val semanticdbJavacVersion = Versions.semanticdbJavacVersion()
+
   private lazy val withSemanticdbPlugin = Command.command(
     "sourcegraphEnable",
     briefHelp = "Configure SemanticdbPlugin for Sourcegraph.",
@@ -29,8 +31,6 @@ object SourcegraphEnable {
     val scalacOptionsSettings = Seq(Compile, Test).flatMap(
       inConfig(_)(SourcegraphPlugin.relaxScalacOptionsConfigSettings)
     )
-
-    val semanticdbJavacVersion = Versions.semanticdbJavacVersion()
 
     val settings = for {
       (p, semanticdbVersion, overriddenScalaVersion) <- collectProjects(
@@ -119,6 +119,16 @@ object SourcegraphEnable {
           javacOptions.in(p) ++= {
             if (Versions.isJavaAtLeast(17)) javacModuleOptions else Nil
           }
+        ),
+        Option(
+          allDependencies.in(p) +=
+            "com.sourcegraph" % "semanticdb-javac" % semanticdbJavacVersion
+        ),
+        Option(
+          javacOptions.in(p) += s"-Xplugin:semanticdb " +
+            s"-build-tool:sbt " +
+            s"-sourceroot:${baseDirectory.in(ThisBuild).value} " +
+            s"-targetroot:${classDirectory.in(p, Compile).value.toPath().resolveSibling("semanticdb-classes")}"
         ),
         Option(
           javaHome.in(p) := javaHome.in(p).value orElse calculateJavaHome
