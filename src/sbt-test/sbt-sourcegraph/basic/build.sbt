@@ -11,7 +11,7 @@ inThisBuild(
 
 lazy val a = project
   .settings(
-    libraryDependencies += "com.lihaoyi" %% "geny" % "0.6.10",
+    libraryDependencies += "com.lihaoyi" %% "geny" % "1.1.1",
     libraryDependencies += "junit" % "junit" % "4.13.2"
   )
 
