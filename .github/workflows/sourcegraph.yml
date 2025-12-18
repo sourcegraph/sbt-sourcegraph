@@ -15,6 +15,7 @@ jobs:
           distribution: "temurin"
           cache: "sbt"
           java-version: 17
+      - uses: sbt/setup-sbt@v1
       - run: sbt dumpVersion publishLocal
       - run: echo "addSbtPlugin(\"com.sourcegraph\" % \"sbt-sourcegraph\" % \"$(cat VERSION)\")" > project/sourcegraph_generated.sbt
       - run: sbt sourcegraphEnable sourcegraphScip
