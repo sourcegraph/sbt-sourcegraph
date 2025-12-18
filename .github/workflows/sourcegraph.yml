@@ -25,3 +25,5 @@ jobs:
           src code-intel upload "-commit=${GITHUB_SHA}" "-github-token=${GITHUB_TOKEN}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SRC_ACCESS_TOKEN: ${{ secrets.SRC_ACCESS_TOKEN }}
+          SRC_ENDPOINT: https://sourcegraph.sourcegraph.com
