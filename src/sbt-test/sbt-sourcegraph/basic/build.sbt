@@ -4,7 +4,7 @@ import java.nio.file.Files
 
 inThisBuild(
   List(
-    scalaVersion := "2.12.15",
+    scalaVersion := "3.8.0",
     organization := "com.example"
   )
 )
