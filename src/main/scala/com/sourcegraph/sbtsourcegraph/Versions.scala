@@ -9,7 +9,7 @@ import java.io.File
 import java.nio.file.Path
 
 object Versions {
-  def scalametaVersion = "4.4.26"
+  def scalametaVersion = "4.5.13"
   private def semanticdbJavacKey = "semanticdb-javac"
 
   def semanticdbJavacVersion(): String =
@@ -32,9 +32,9 @@ object Versions {
       props.asScala.toMap
     } else {
       Map(
-        semanticdbJavacKey -> "0.8.0",
-        "2.12.12" -> scalametaVersion,
-        "2.13.6" -> scalametaVersion,
+        semanticdbJavacKey -> "0.8.7",
+        "2.12.16" -> scalametaVersion,
+        "2.13.8" -> scalametaVersion,
         "2.11.12" -> scalametaVersion
       ).withDefaultValue(scalametaVersion)
     }

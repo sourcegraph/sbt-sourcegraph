@@ -4,7 +4,7 @@ import com.sourcegraph.sbtsourcegraph.Versions
 
 val V = new {
   def scala212 = "2.12.12"
-  def scalameta = "4.4.25"
+  def scalameta = "4.5.13"
 }
 
 scalaVersion := V.scala212
