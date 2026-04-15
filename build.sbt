@@ -3,7 +3,7 @@ import java.util.Properties
 import com.sourcegraph.sbtsourcegraph.Versions
 
 val V = new {
-  def scala212 = "2.12.12"
+  def scala212 = "2.12.21"
   def scalameta = "4.4.25"
 }
 
